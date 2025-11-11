@@ -198,7 +198,7 @@ const Home = () => {
             </div>
             <div className="hidden md:block">
               <img
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800"
+                src="https://rankoone.com/wp-content/uploads/2024/02/eCommerce-Website-Components-photo.jpg"
                 alt="Students"
                 className="rounded-lg shadow-2xl"
               />

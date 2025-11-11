@@ -18,35 +18,6 @@ const Footer = () => {
 
   return (
     <footer className="bg-linear-to-br from-gray-900 via-gray-800 to-blue-900 text-gray-300">
-      {/* Top Features Bar */}
-      <div className="border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="flex flex-col items-center space-y-2">
-              <FaShieldAlt className="text-blue-400 text-3xl" />
-              <h4 className="text-white font-semibold">Secure Transactions</h4>
-              <p className="text-sm text-gray-400">
-                Safe & verified student accounts
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2">
-              <FaTruck className="text-blue-400 text-3xl" />
-              <h4 className="text-white font-semibold">Campus Delivery</h4>
-              <p className="text-sm text-gray-400">
-                Quick delivery within campus
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2">
-              <FaHeadset className="text-blue-400 text-3xl" />
-              <h4 className="text-white font-semibold">24/7 Support</h4>
-              <p className="text-sm text-gray-400">
-                Always here to help students
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
