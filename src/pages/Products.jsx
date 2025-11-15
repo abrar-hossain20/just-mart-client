@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Link } from "react-router";
+import { CartContext } from "../context/CartContext";
 import {
   FaSearch,
   FaFilter,
@@ -10,9 +11,12 @@ import {
   FaMapMarkerAlt,
   FaClock,
   FaEye,
+  FaShoppingCart,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const Products = () => {
+  const { addToCart, isInCart } = useContext(CartContext);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -23,6 +27,7 @@ const Products = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid"); // grid or list
   const [showFilters, setShowFilters] = useState(false);
+  const [addedProductId, setAddedProductId] = useState(null);
 
   useEffect(() => {
     // Fetch data from Data.json
@@ -114,6 +119,16 @@ const Products = () => {
     setSelectedCondition("All");
     setPriceRange([0, 100000]);
     setSortBy("newest");
+  };
+
+  const handleAddToCart = (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product);
+    setAddedProductId(product.id);
+    setTimeout(() => {
+      setAddedProductId(null);
+    }, 2000);
   };
 
   if (loading) {
@@ -358,7 +373,7 @@ const Products = () => {
                       <button className="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-50 transition-colors shadow-md">
                         <FaHeart className="text-gray-400 hover:text-red-500" />
                       </button>
-                      <span className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                      <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
                         {Math.round(
                           ((product.originalPrice - product.price) /
                             product.originalPrice) *
@@ -399,16 +414,35 @@ const Products = () => {
                             <FaEye /> {product.views}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-gray-600">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm text-gray-600 flex-1 truncate">
                             {product.seller?.name || product.seller}
                           </p>
-                          <Link
-                            to={`/product/${product.id}`}
-                            className="text-sm text-teal-600 hover:text-teal-700 font-semibold"
+                          <button
+                            onClick={(e) => handleAddToCart(e, product)}
+                            disabled={isInCart(product.id)}
+                            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                              isInCart(product.id)
+                                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                : addedProductId === product.id
+                                ? "bg-green-500 text-white"
+                                : "bg-teal-600 text-white hover:bg-teal-700"
+                            }`}
                           >
-                            View Details →
-                          </Link>
+                            {isInCart(product.id) ? (
+                              <>
+                                <FaCheckCircle /> In Cart
+                              </>
+                            ) : addedProductId === product.id ? (
+                              <>
+                                <FaCheckCircle /> Added!
+                              </>
+                            ) : (
+                              <>
+                                <FaShoppingCart /> Add
+                              </>
+                            )}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -429,7 +463,7 @@ const Products = () => {
                           alt={product.title}
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute top-2 left-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                        <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
                           {Math.round(
                             ((product.originalPrice - product.price) /
                               product.originalPrice) *
@@ -492,12 +526,31 @@ const Products = () => {
                                 {product.seller?.name || product.seller}
                               </strong>
                             </span>
-                            <Link
-                              to={`/product/${product.id}`}
-                              className="px-6 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
+                            <button
+                              onClick={(e) => handleAddToCart(e, product)}
+                              disabled={isInCart(product.id)}
+                              className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                                isInCart(product.id)
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : addedProductId === product.id
+                                  ? "bg-green-500 text-white"
+                                  : "bg-teal-600 text-white hover:bg-teal-700"
+                              }`}
                             >
-                              View Details
-                            </Link>
+                              {isInCart(product.id) ? (
+                                <>
+                                  <FaCheckCircle /> In Cart
+                                </>
+                              ) : addedProductId === product.id ? (
+                                <>
+                                  <FaCheckCircle /> Added!
+                                </>
+                              ) : (
+                                <>
+                                  <FaShoppingCart /> Add to Cart
+                                </>
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>

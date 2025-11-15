@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router";
+import { CartContext } from "../context/CartContext";
 import {
   FaArrowLeft,
   FaHeart,
@@ -21,10 +22,12 @@ import {
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart, isInCart } = useContext(CartContext);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedImage, setSelectedImage] = useState("");
+  const [showAddedMessage, setShowAddedMessage] = useState(false);
 
   useEffect(() => {
     // Fetch data from Data.json
@@ -91,8 +94,23 @@ const ProductDetails = () => {
     ((product.originalPrice - product.price) / product.originalPrice) * 100
   );
 
+  const handleAddToCart = () => {
+    addToCart(product);
+    setShowAddedMessage(true);
+    setTimeout(() => {
+      setShowAddedMessage(false);
+    }, 3000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Success Message Toast */}
+      {showAddedMessage && (
+        <div className="fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 animate-fade-in">
+          <FaCheckCircle />
+          <span>Added to cart successfully!</span>
+        </div>
+      )}
       {/* Breadcrumb */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -233,9 +251,17 @@ const ProductDetails = () => {
                 <FaPhone />
                 Contact Seller
               </button>
-              <button className="w-full py-4 bg-white border-2 border-teal-600 text-teal-600 rounded-lg font-bold text-lg hover:bg-teal-50 transition-colors flex items-center justify-center gap-2">
+              <button
+                onClick={handleAddToCart}
+                disabled={isInCart(product.id)}
+                className={`w-full py-4 rounded-lg font-bold text-lg transition-colors flex items-center justify-center gap-2 ${
+                  isInCart(product.id)
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50"
+                }`}
+              >
                 <FaShoppingCart />
-                Add to Cart
+                {isInCart(product.id) ? "Already in Cart" : "Add to Cart"}
               </button>
             </div>
           </div>

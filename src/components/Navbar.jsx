@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
+import { CartContext } from "../context/CartContext";
 import {
   FaUserCircle,
   FaShoppingCart,
@@ -11,6 +12,7 @@ import {
 
 const Navbar = () => {
   const { user, signoutUserFunc } = useContext(AuthContext);
+  const { getCartItemsCount } = useContext(CartContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const navigate = useNavigate();
@@ -75,9 +77,11 @@ const Navbar = () => {
               className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200"
             >
               <FaShoppingCart size={22} />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                1
-              </span>
+              {getCartItemsCount() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-linear-to-r from-orange-500 to-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {getCartItemsCount()}
+                </span>
+              )}
             </Link>
 
             {/* Conditional Login/Profile */}
