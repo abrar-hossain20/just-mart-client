@@ -48,8 +48,13 @@ const Products = () => {
   // Set search query from URL parameter
   useEffect(() => {
     const searchFromUrl = searchParams.get("search");
+    const categoryFromUrl = searchParams.get("category");
+
     if (searchFromUrl) {
       setSearchQuery(searchFromUrl);
+    }
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
     }
   }, [searchParams]);
 

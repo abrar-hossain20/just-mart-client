@@ -7,6 +7,7 @@
       "originalPrice": 900,
       "description": "Well-maintained calculus textbook. Perfect condition with no markings. Includes practice problems and solutions.",
       "image": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400",
+      "rating": 4.2,
       "seller": {
         "name": "Ahmed Khan",
         "university": "Jashore University of Science and Technology",
@@ -29,6 +30,7 @@
       "originalPrice": 85000,
       "description": "Barely used MacBook Air M1 chip. Bought 1 year ago, still under warranty. Includes original charger and box.",
       "image": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400",
+      "rating": 4.6,
       "seller": {
         "name": "Sarah Mahmud",
         "university": "Jashore University of Science and Technology",
@@ -51,6 +53,7 @@
       "originalPrice": 6000,
       "description": "Wooden study desk with comfortable rolling chair. Great for dorm rooms. Dimensions: 120cm x 60cm.",
       "image": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=400",
+      "rating": 4.3,
       "seller": {
         "name": "Rahim Jamal",
         "university": "Jashore University of Science and Technology",
@@ -73,6 +76,7 @@
       "originalPrice": 1500,
       "description": "Casio FX-991EX Scientific Calculator. Used for one semester. Works perfectly.",
       "image": "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400",
+      "rating": 4.5,
       "seller": {
         "name": "Fatima Siddique",
         "university": "Jashore University of Science and Technology",
@@ -95,6 +99,7 @@
       "originalPrice": 95000,
       "description": "iPhone 13 Pro in excellent condition. Battery health 92%. Comes with case and screen protector.",
       "image": "https://images.unsplash.com/photo-1592286927505-2fd1aeaf1c91?w=400",
+      "rating": 4.4,
       "seller": {
         "name": "Karim Hassan",
         "university": "Jashore University of Science and Technology",
@@ -117,6 +122,7 @@
       "originalPrice": 3000,
       "description": "Bundle of 5 programming books: Python, Java, C++, JavaScript, and Data Structures. Excellent for CS students.",
       "image": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400",
+      "rating": 4.7,
       "seller": {
         "name": "Nadia Rahman",
         "university": "Jashore University of Science and Technology",
@@ -139,6 +145,7 @@
       "originalPrice": 4500,
       "description": "RGB gaming mouse and mechanical keyboard. Perfect for gaming and coding. Barely used.",
       "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400",
+      "rating": 4.8,
       "seller": {
         "name": "Tahsin Ahmed",
         "university": "Jashore University of Science and Technology",
@@ -161,6 +168,7 @@
       "originalPrice": 1200,
       "description": "3 high-quality cotton t-shirts in different colors. Size: Medium. Worn only a few times.",
       "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+      "rating": 4.1,
       "seller": {
         "name": "Imran Khan",
         "university": "Jashore University of Science and Technology",
@@ -183,6 +191,7 @@
       "originalPrice": 7000,
       "description": "JBL Flip 5 waterproof speaker. Great sound quality. Includes charging cable.",
       "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400",
+      "rating": 4.9,
       "seller": {
         "name": "Zara Hossain",
         "university": "Jashore University of Science and Technology",
@@ -205,6 +214,7 @@
       "originalPrice": 15000,
       "description": "21-speed mountain bike in great condition. Perfect for campus commuting. Recently serviced.",
       "image": "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?w=400",
+      "rating": 4.6,
       "seller": {
         "name": "Rafiq Islam",
         "university": "Jashore University of Science and Technology",
@@ -227,6 +237,7 @@
       "originalPrice": 3500,
       "description": "Spacious North Face backpack with laptop compartment. Perfect for students carrying books and laptop.",
       "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400",
+      "rating": 4.4,
       "seller": {
         "name": "Mehedi Hasan",
         "university": "Jashore University of Science and Technology",
@@ -249,6 +260,7 @@
       "originalPrice": 9000,
       "description": "Compact mini fridge perfect for dorm rooms. Energy efficient. Keeps food and drinks cold.",
       "image": "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400",
+      "rating": 5.0,
       "seller": {
         "name": "Aisha Sultana",
         "university": "Jashore University of Science and Technology",

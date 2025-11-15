@@ -156,6 +156,14 @@ const ProductDetails = () => {
               <span className="absolute top-4 right-4 bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                 {product.condition}
               </span>
+              {product.rating && (
+                <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
+                  <FaStar className="text-yellow-400" />
+                  <span className="text-sm font-bold text-gray-800">
+                    {product.rating}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -170,6 +178,23 @@ const ProductDetails = () => {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {product.title}
                   </h1>
+                  {product.rating && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1 text-yellow-400">
+                        <FaStar />
+                        <FaStar />
+                        <FaStar />
+                        <FaStar />
+                        <FaStar />
+                      </div>
+                      <span className="text-lg font-bold text-gray-800">
+                        {product.rating}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        ({product.views} reviews)
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors">

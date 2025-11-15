@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   FaSearch,
   FaShieldAlt,
@@ -18,8 +18,11 @@ import {
 } from "react-icons/fa";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
   useEffect(() => {
     // Fetch data from Data.json
@@ -47,9 +50,34 @@ const Home = () => {
   }
 
   const categories = data?.categories || [];
-  const featuredProducts = data?.products?.slice(0, 4) || [];
+  const featuredProducts =
+    data?.products
+      ?.filter((product) => product.condition === "New")
+      ?.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 4) || [];
   const testimonials = data?.testimonials || [];
   const stats = data?.stats || {};
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    let searchUrl = "/products";
+    const params = new URLSearchParams();
+
+    if (searchQuery.trim()) {
+      params.append("search", searchQuery.trim());
+    }
+
+    if (selectedCategory !== "All Categories") {
+      params.append("category", selectedCategory);
+    }
+
+    const queryString = params.toString();
+    if (queryString) {
+      searchUrl += `?${queryString}`;
+    }
+
+    navigate(searchUrl);
+  };
 
   const categoryIcons = {
     "Books & Notes": <FaBook />,
@@ -167,28 +195,39 @@ const Home = () => {
       {/* Search Section */}
       <section className="bg-white py-8 shadow-md -mt-8 relative z-10 mx-4 sm:mx-8 lg:mx-16 rounded-lg">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col sm:flex-row gap-4"
+          >
             <div className="flex-1 relative">
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="What are you looking for?"
                 className="w-full px-4 py-3 pr-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
-            <select className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option>All Categories</option>
-              <option>Books & Notes</option>
-              <option>Electronics</option>
-              <option>Fashion</option>
-              <option>Furniture</option>
-              <option>Gaming</option>
-              <option>Sports</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
             </select>
-            <button className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200">
+            <button
+              type="submit"
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
+            >
               Search
             </button>
-          </div>
+          </form>
         </div>
       </section>
 
@@ -200,11 +239,13 @@ const Home = () => {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category, index) => (
-              <Link
+              <button
                 key={category.id || index}
-                to={`/category/${category.name
-                  .toLowerCase()
-                  .replace(/\s+/g, "-")}`}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  params.append("category", category.name);
+                  navigate(`/products?${params.toString()}`);
+                }}
                 className={`bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 text-center group cursor-pointer`}
               >
                 <div
@@ -218,18 +259,18 @@ const Home = () => {
                 <p className="text-sm text-gray-500">
                   {category.count.toLocaleString()} items
                 </p>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Products Section */}
+      {/* Top Rated Products Section */}
       <section className="py-16 bg-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800">
-              Featured Products
+              Top Rated Products
             </h2>
             <Link
               to="/products"
@@ -241,8 +282,9 @@ const Home = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
-              <div
+              <Link
                 key={product.id}
+                to={`/product/${product.id}`}
                 className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="relative">
@@ -262,34 +304,56 @@ const Home = () => {
                   <span className="absolute top-2 left-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                     {product.condition}
                   </span>
+                  {product.rating && (
+                    <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                      <FaStar className="text-yellow-400 text-xs" />
+                      <span className="text-xs font-semibold">
+                        {product.rating}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <p className="text-xs text-gray-500 mb-1">
                     {product.category}
                   </p>
-                  <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+                  <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
                     {product.title}
                   </h3>
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <p className="text-xl font-bold text-blue-600">
-                        ৳{product.price}
+                        ৳{product.price.toLocaleString()}
                       </p>
                       <p className="text-xs text-gray-400 line-through">
-                        ৳{product.originalPrice}
+                        ৳{product.originalPrice.toLocaleString()}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <p className="text-gray-600">
-                      Seller: {product.seller?.name || product.seller}
-                    </p>
-                    <button className="text-green-600 hover:text-green-700 font-semibold">
-                      View
-                    </button>
+                  <div className="flex items-center justify-between text-sm border-t pt-3">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={
+                          product.seller?.avatar || "https://i.pravatar.cc/150"
+                        }
+                        alt={product.seller?.name || product.seller}
+                        className="w-6 h-6 rounded-full"
+                      />
+                      <p className="text-gray-600 truncate">
+                        {product.seller?.name || product.seller}
+                      </p>
+                    </div>
+                    {product.rating && (
+                      <div className="flex items-center gap-1">
+                        <FaStar className="text-yellow-400 text-sm" />
+                        <span className="font-semibold text-gray-700">
+                          {product.rating}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
