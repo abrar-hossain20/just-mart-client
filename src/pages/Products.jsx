@@ -128,7 +128,7 @@ const Products = () => {
   }
 
   const categories = data?.categories || [];
-  const conditions = ["All", "Like New", "Excellent", "Good", "Fair"];
+  const conditions = ["All", "New", "Used"];
 
   return (
     <div className="min-h-screen bg-gray-50">
