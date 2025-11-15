@@ -17,14 +17,14 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-linear-to-br from-gray-900 via-gray-800 to-blue-900 text-gray-300">
+    <footer className="bg-black text-gray-300">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About Section */}
           <div>
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-linear-to-r from-blue-600 to-cyan-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-linear-to-r from-teal-600 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-xl">JM</span>
               </div>
               <span className="text-xl font-bold text-white">Just Mart</span>
@@ -74,13 +74,13 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-bold text-lg mb-4 relative inline-block">
               Quick Links
-              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-blue-500"></span>
+              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-teal-500"></span>
             </h3>
             <ul className="space-y-2">
               <li>
                 <Link
                   to="/"
-                  className="hover:text-blue-400 transition-colors duration-200 flex items-center group"
+                  className="hover:text-teal-400 transition-colors duration-200 flex items-center group"
                 >
                   <span className="mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     →
@@ -167,13 +167,13 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-bold text-lg mb-4 relative inline-block">
               Contact Us
-              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-blue-500"></span>
+              <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-teal-500"></span>
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
-                <FaMapMarkerAlt className="text-blue-400 mt-1 shrink-0" />
+                <FaMapMarkerAlt className="text-teal-400 mt-1 shrink-0" />
                 <span className="text-sm">
-                  Jashore University of Science and Technology, Jashore
+                  University Campus, Dhaka 1000, Bangladesh
                 </span>
               </li>
               <li className="flex items-start space-x-3">
@@ -181,7 +181,7 @@ const Footer = () => {
                 <span className="text-sm">+880 1234-567890</span>
               </li>
               <li className="flex items-start space-x-3">
-                <FaEnvelope className="text-blue-400 mt-1 shrink-0" />
+                <FaEnvelope className="text-teal-400 mt-1 shrink-0" />
                 <span className="text-sm">support@justmart.com</span>
               </li>
             </ul>
@@ -193,9 +193,9 @@ const Footer = () => {
                 <input
                   type="email"
                   placeholder="Your email"
-                  className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                 />
-                <button className="px-4 py-2 bg-linear-to-r from-blue-600 to-cyan-500 text-white rounded-r-lg hover:shadow-lg transition-all duration-300 font-semibold text-sm">
+                <button className="px-4 py-2 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-r-lg hover:shadow-lg hover:shadow-teal-500/30 transition-all duration-300 font-semibold text-sm">
                   Subscribe
                 </button>
               </div>
@@ -216,7 +216,7 @@ const Footer = () => {
             <div className="flex space-x-6 text-sm">
               <Link
                 to="/privacy"
-                className="hover:text-blue-400 transition-colors duration-200"
+                className="hover:text-teal-400 transition-colors duration-200"
               >
                 Privacy Policy
               </Link>
@@ -228,7 +228,7 @@ const Footer = () => {
               </Link>
               <Link
                 to="/safety"
-                className="hover:text-blue-400 transition-colors duration-200"
+                className="hover:text-teal-400 transition-colors duration-200"
               >
                 Safety Guidelines
               </Link>

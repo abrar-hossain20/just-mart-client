@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
   FaSearch,
@@ -18,19 +18,47 @@ import {
 } from "react-icons/fa";
 
 const Home = () => {
-  const categories = [
-    { name: "Books & Notes", icon: <FaBook />, count: "1,234", color: "blue" },
-    {
-      name: "Electronics",
-      icon: <FaLaptop />,
-      count: "856",
-      color: "purple",
-    },
-    { name: "Fashion", icon: <FaTshirt />, count: "2,103", color: "pink" },
-    { name: "Furniture", icon: <FaCouch />, count: "432", color: "green" },
-    { name: "Gaming", icon: <FaGamepad />, count: "678", color: "red" },
-    { name: "Sports", icon: <FaBicycle />, count: "543", color: "orange" },
-  ];
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch data from Data.json
+    fetch("/Data.json")
+      .then((response) => response.json())
+      .then((jsonData) => {
+        setData(jsonData);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error loading data:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const categories = data?.categories || [];
+  const featuredProducts = data?.products?.slice(0, 4) || [];
+  const testimonials = data?.testimonials || [];
+  const stats = data?.stats || {};
+
+  const categoryIcons = {
+    "Books & Notes": <FaBook />,
+    Electronics: <FaLaptop />,
+    Fashion: <FaTshirt />,
+    Furniture: <FaCouch />,
+    Gaming: <FaGamepad />,
+    Sports: <FaBicycle />,
+  };
 
   const features = [
     {
@@ -81,82 +109,6 @@ const Home = () => {
     },
   ];
 
-  const testimonials = [
-    {
-      name: "Fahim Ahmed",
-      department: "Computer Science and Engineering",
-      rating: 5,
-      comment:
-        "Found all my textbooks at half the price! This platform is a lifesaver for students on a budget.",
-      avatar:
-        "https://assets.manutd.com/AssetPicker/images/0/0/10/126/687707/Legends-Profile_Cristiano-Ronaldo1523460877263.jpg",
-    },
-    {
-      name: "Tapu Ghosh",
-      department: "Computer Science and Engineering",
-      rating: 5,
-      comment:
-        "Sold my laptop within 2 days! The campus delivery option made everything so convenient.",
-      avatar:
-        "https://assets.manutd.com/AssetPicker/images/0/0/10/126/687707/Legends-Profile_Cristiano-Ronaldo1523460877263.jpg",
-    },
-    {
-      name: "Tanvir Mahtab",
-      department: "Computer Science and Engineering",
-      rating: 5,
-      comment:
-        "Safe, secure, and perfect for students. Love the verified account system!",
-      avatar:
-        "https://assets.manutd.com/AssetPicker/images/0/0/10/126/687707/Legends-Profile_Cristiano-Ronaldo1523460877263.jpg",
-    },
-  ];
-
-  const featuredProducts = [
-    {
-      id: 1,
-      title: "Calculus Textbook (Used)",
-      price: 250,
-      originalPrice: 500,
-      image:
-        "https://static-01.daraz.com.bd/p/f88ca24b9c490768ac3e8ad9980c8242.jpg",
-      seller: "Ramjan Khan",
-      condition: "Good",
-      category: "Books",
-    },
-    {
-      id: 2,
-      title: "MacBook Air M1",
-      price: 65000,
-      originalPrice: 85000,
-      image: "https://sm.pcmag.com/pcmag_me/photo/default/macbook-6_hgfm.jpg",
-      seller: "Risan Mahfuz",
-      condition: "Like New",
-      category: "Electronics",
-    },
-    {
-      id: 3,
-      title: "Study Desk & Chair",
-      price: 3500,
-      originalPrice: 6000,
-      image:
-        "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=400",
-      seller: "Shihab",
-      condition: "Excellent",
-      category: "Furniture",
-    },
-    {
-      id: 4,
-      title: "Scientific Calculator",
-      price: 800,
-      originalPrice: 1500,
-      image:
-        "https://rokbucket.rokomari.io/ProductNew20190903/260X372/OSALO_Scientific_Calculator_401_function-OSALO-e16ae-269385.png",
-      seller: "Mostafizur Rahman",
-      condition: "Good",
-      category: "Electronics",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -188,11 +140,16 @@ const Home = () => {
               <div className="mt-8 flex items-center space-x-6 text-sm">
                 <div className="flex items-center space-x-2">
                   <FaCheckCircle className="text-green-300" />
-                  <span>10,000+ Products</span>
+                  <span>
+                    {stats.totalProducts?.toLocaleString() || "10,000+"}+
+                    Products
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <FaCheckCircle className="text-green-300" />
-                  <span>5,000+ Students</span>
+                  <span>
+                    {stats.totalUsers?.toLocaleString() || "5,000+"}+ Students
+                  </span>
                 </div>
               </div>
             </div>
@@ -244,19 +201,23 @@ const Home = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category, index) => (
               <Link
-                key={index}
-                to={`/category/${category.name.toLowerCase()}`}
+                key={category.id || index}
+                to={`/category/${category.name
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}`}
                 className={`bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 text-center group cursor-pointer`}
               >
                 <div
                   className={`text-5xl mb-3 text-${category.color}-500 group-hover:scale-110 transition-transform duration-300`}
                 >
-                  {category.icon}
+                  {categoryIcons[category.name] || category.icon}
                 </div>
                 <h3 className="font-semibold text-gray-800 mb-1">
                   {category.name}
                 </h3>
-                <p className="text-sm text-gray-500">{category.count} items</p>
+                <p className="text-sm text-gray-500">
+                  {category.count.toLocaleString()} items
+                </p>
               </Link>
             ))}
           </div>
@@ -320,8 +281,10 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <p className="text-gray-600">Seller: {product.seller}</p>
-                    <button className="text-blue-600 hover:text-blue-700 font-semibold">
+                    <p className="text-gray-600">
+                      Seller: {product.seller?.name || product.seller}
+                    </p>
+                    <button className="text-green-600 hover:text-green-700 font-semibold">
                       View
                     </button>
                   </div>
