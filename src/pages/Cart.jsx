@@ -82,9 +82,7 @@ const Cart = () => {
                         <p className="text-sm text-gray-500 mt-1">
                           {item.category} • {item.condition}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {item.location}
-                        </p>
+                        <p className="text-sm text-gray-500">{item.location}</p>
                       </div>
                       <button
                         onClick={() => removeFromCart(item.id)}

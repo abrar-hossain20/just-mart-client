@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { CartContext } from "../context/CartContext";
 import {
   FaSearch,
@@ -17,6 +17,7 @@ import {
 
 const Products = () => {
   const { addToCart, isInCart } = useContext(CartContext);
+  const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -43,6 +44,14 @@ const Products = () => {
         setLoading(false);
       });
   }, []);
+
+  // Set search query from URL parameter
+  useEffect(() => {
+    const searchFromUrl = searchParams.get("search");
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!data?.products) return;
