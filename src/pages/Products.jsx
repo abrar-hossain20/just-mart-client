@@ -14,6 +14,7 @@ import {
   FaEye,
   FaShoppingCart,
   FaCheckCircle,
+  FaStar,
 } from "react-icons/fa";
 
 const Products = () => {
@@ -115,6 +116,9 @@ const Products = () => {
         break;
       case "popular":
         filtered.sort((a, b) => b.views - a.views);
+        break;
+      case "rating":
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       default:
         break;
@@ -333,6 +337,7 @@ const Products = () => {
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
                   <option value="popular">Most Popular</option>
+                  <option value="rating">Highest Rated</option>
                 </select>
 
                 {/* View Toggle */}
@@ -407,6 +412,14 @@ const Products = () => {
                       <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {product.condition}
                       </span>
+                      {product.rating && (
+                        <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <FaStar className="text-yellow-400 text-xs" />
+                          <span className="text-xs font-semibold text-gray-800">
+                            {product.rating}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="p-4">
                       <p className="text-xs text-gray-500 mb-1">
@@ -497,6 +510,14 @@ const Products = () => {
                         <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                           {product.condition}
                         </span>
+                        {product.rating && (
+                          <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                            <FaStar className="text-yellow-400 text-xs" />
+                            <span className="text-xs font-semibold text-gray-800">
+                              {product.rating}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 p-6">
                         <div className="flex justify-between items-start mb-3">
