@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
 import {
   FaArrowLeft,
   FaHeart,
@@ -17,12 +18,14 @@ import {
   FaFacebookF,
   FaTwitter,
   FaWhatsapp,
+  FaLock,
 } from "react-icons/fa";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, isInCart } = useContext(CartContext);
+  const { user, loading: authLoading } = useContext(AuthContext);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -58,12 +61,48 @@ const ProductDetails = () => {
       });
   }, [id]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-600 mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FaLock className="text-4xl text-teal-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Login Required
+            </h2>
+            <p className="text-gray-600 mb-6">
+              You need to be logged in to view product details. Please sign in
+              to continue.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/login"
+                className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
+              >
+                Login Now
+              </Link>
+              <Link
+                to="/products"
+                className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+              >
+                Back to Products
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -95,6 +134,10 @@ const ProductDetails = () => {
   );
 
   const handleAddToCart = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     addToCart(product);
     setShowAddedMessage(true);
     setTimeout(() => {

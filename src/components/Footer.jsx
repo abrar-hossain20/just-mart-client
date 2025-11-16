@@ -173,7 +173,8 @@ const Footer = () => {
               <li className="flex items-start space-x-3">
                 <FaMapMarkerAlt className="text-teal-400 mt-1 shrink-0" />
                 <span className="text-sm">
-                  University Campus, Dhaka 1000, Bangladesh
+                  Jashore University of Science and Technology, Jashore,
+                  Bangladesh
                 </span>
               </li>
               <li className="flex items-start space-x-3">

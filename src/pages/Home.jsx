@@ -88,32 +88,6 @@ const Home = () => {
     Sports: <FaBicycle />,
   };
 
-  const features = [
-    {
-      icon: <FaUserGraduate />,
-      title: "Student-Only Community",
-      description:
-        "Verified university accounts ensure you're trading with fellow students.",
-    },
-    {
-      icon: <FaShieldAlt />,
-      title: "Secure Transactions",
-      description:
-        "Safe payment methods and buyer protection for worry-free shopping.",
-    },
-    {
-      icon: <FaTruck />,
-      title: "Campus Delivery",
-      description:
-        "Fast and convenient delivery options right to your dorm or department.",
-    },
-    {
-      icon: <FaDollarSign />,
-      title: "Best Prices",
-      description: "Get the best deals on new and used items from your peers.",
-    },
-  ];
-
   const howItWorks = [
     {
       step: "1",

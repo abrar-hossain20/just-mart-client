@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useSearchParams, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
 import {
   FaSearch,
   FaFilter,
@@ -17,6 +18,8 @@ import {
 
 const Products = () => {
   const { addToCart, isInCart } = useContext(CartContext);
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -138,6 +141,12 @@ const Products = () => {
   const handleAddToCart = (e, product) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     addToCart(product);
     setAddedProductId(product.id);
     setTimeout(() => {
