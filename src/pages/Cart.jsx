@@ -120,7 +120,7 @@ const Cart = () => {
 
                       {/* Price */}
                       <div className="text-right">
-                        <p className="text-xl font-bold text-teal-600">
+                        <p className="text-xl font-bold text-green-700">
                           ৳{(item.price * item.quantity).toLocaleString()}
                         </p>
                         {item.quantity > 1 && (

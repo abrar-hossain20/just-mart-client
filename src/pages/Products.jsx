@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
+import { WishlistContext } from "../context/WishlistContext";
 import {
   FaSearch,
   FaFilter,
@@ -20,6 +21,8 @@ import {
 const Products = () => {
   const { addToCart, isInCart } = useContext(CartContext);
   const { user } = useContext(AuthContext);
+  const { addToWishlist, removeFromWishlist, isInWishlist } =
+    useContext(WishlistContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
@@ -156,6 +159,22 @@ const Products = () => {
     setTimeout(() => {
       setAddedProductId(null);
     }, 2000);
+  };
+
+  const handleWishlistToggle = (e, product) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
   };
 
   if (loading) {
@@ -398,8 +417,17 @@ const Products = () => {
                         alt={product.title}
                         className="w-full h-48 object-cover"
                       />
-                      <button className="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-50 transition-colors shadow-md">
-                        <FaHeart className="text-gray-400 hover:text-red-500" />
+                      <button
+                        onClick={(e) => handleWishlistToggle(e, product)}
+                        className="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-50 transition-colors shadow-md"
+                      >
+                        <FaHeart
+                          className={`${
+                            isInWishlist(product.id)
+                              ? "text-red-500"
+                              : "text-gray-400"
+                          } transition-colors`}
+                        />
                       </button>
                       <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
                         {Math.round(
@@ -534,8 +562,17 @@ const Products = () => {
                               {product.description}
                             </p>
                           </div>
-                          <button className="ml-4 w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors">
-                            <FaHeart className="text-gray-400 hover:text-red-500" />
+                          <button
+                            onClick={(e) => handleWishlistToggle(e, product)}
+                            className="ml-4 w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors"
+                          >
+                            <FaHeart
+                              className={`${
+                                isInWishlist(product.id)
+                                  ? "text-red-500"
+                                  : "text-gray-400"
+                              } transition-colors`}
+                            />
                           </button>
                         </div>
                         <div className="flex flex-wrap items-center justify-between gap-4">

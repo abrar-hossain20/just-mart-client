@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
+import { WishlistContext } from "../context/WishlistContext";
 import {
   FaArrowLeft,
   FaHeart,
@@ -26,6 +27,8 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { addToCart, isInCart } = useContext(CartContext);
   const { user, loading: authLoading } = useContext(AuthContext);
+  const { addToWishlist, removeFromWishlist, isInWishlist } =
+    useContext(WishlistContext);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -145,6 +148,19 @@ const ProductDetails = () => {
     }, 3000);
   };
 
+  const handleWishlistToggle = () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Success Message Toast */}
@@ -240,8 +256,21 @@ const ProductDetails = () => {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-red-50 transition-colors">
-                    <FaHeart className="text-gray-600 hover:text-red-500" />
+                  <button
+                    onClick={handleWishlistToggle}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                      isInWishlist(product.id)
+                        ? "bg-red-50"
+                        : "bg-gray-100 hover:bg-red-50"
+                    }`}
+                  >
+                    <FaHeart
+                      className={`${
+                        isInWishlist(product.id)
+                          ? "text-red-500"
+                          : "text-gray-600"
+                      } transition-colors`}
+                    />
                   </button>
                   <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors">
                     <FaShare className="text-gray-600 hover:text-blue-500" />
