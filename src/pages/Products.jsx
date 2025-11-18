@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router";
+import { Link, useSearchParams, useNavigate, useLocation } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
@@ -24,6 +24,7 @@ const Products = () => {
   const { addToWishlist, removeFromWishlist, isInWishlist } =
     useContext(WishlistContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -150,7 +151,7 @@ const Products = () => {
     e.stopPropagation();
 
     if (!user) {
-      navigate("/login");
+      navigate("/signin", { state: "/products" + location.search });
       return;
     }
 
@@ -166,7 +167,7 @@ const Products = () => {
     e.stopPropagation();
 
     if (!user) {
-      navigate("/login");
+      navigate("/signin", { state: "/products" + location.search });
       return;
     }
 

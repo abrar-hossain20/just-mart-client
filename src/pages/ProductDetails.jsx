@@ -93,7 +93,8 @@ const ProductDetails = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                to="/login"
+                to="/signin"
+                state={`/product/${id}`}
                 className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
               >
                 Login Now
@@ -138,7 +139,7 @@ const ProductDetails = () => {
 
   const handleAddToCart = () => {
     if (!user) {
-      navigate("/login");
+      navigate("/signin", { state: `/product/${id}` });
       return;
     }
     addToCart(product);
@@ -150,7 +151,7 @@ const ProductDetails = () => {
 
   const handleWishlistToggle = () => {
     if (!user) {
-      navigate("/login");
+      navigate("/signin", { state: `/product/${id}` });
       return;
     }
 

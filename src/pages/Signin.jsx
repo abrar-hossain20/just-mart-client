@@ -23,8 +23,7 @@ const Signin = () => {
   const navigate = useNavigate();
 
   if (user) {
-    navigate("/");
-    return;
+    return <Navigate to={from} replace />;
   }
 
   console.log(location);
