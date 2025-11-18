@@ -152,6 +152,13 @@ const Navbar = () => {
                       My Orders
                     </Link>
                     <Link
+                      to="/wishlist"
+                      onClick={() => setShowDropdown(false)}
+                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                    >
+                      My Wishlist
+                    </Link>
+                    <Link
                       to="/profile"
                       onClick={() => setShowDropdown(false)}
                       className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
@@ -262,6 +269,13 @@ const Navbar = () => {
                   className="block text-gray-700 hover:text-blue-600 transition-colors duration-200"
                 >
                   My Orders
+                </Link>
+                <Link
+                  to="/wishlist"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="block text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                >
+                  My Wishlist
                 </Link>
                 <button
                   onClick={() => {

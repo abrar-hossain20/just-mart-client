@@ -68,7 +68,7 @@ const Orders = () => {
           email: "john@example.com",
           avatar: "https://i.pravatar.cc/150?img=1",
         },
-        deliveryAddress: "Room 302, Hall 3, BUET Campus",
+        deliveryAddress: "Room 302, M M Hall, JUST Campus",
         estimatedDelivery: "2025-11-18",
         trackingSteps: [
           {
@@ -102,7 +102,7 @@ const Orders = () => {
           email: "sarah@example.com",
           avatar: "https://i.pravatar.cc/150?img=5",
         },
-        deliveryAddress: "Room 205, Hall 1, DU Campus",
+        deliveryAddress: "Room 205, SMR Hall, JUST Campus",
         estimatedDelivery: "2025-11-19",
         trackingSteps: [
           {
@@ -144,7 +144,7 @@ const Orders = () => {
           email: "karim@example.com",
           avatar: "https://i.pravatar.cc/150?img=3",
         },
-        deliveryAddress: "House 45, Road 12, Dhanmondi",
+        deliveryAddress: "Ambottola, Jashore",
         estimatedDelivery: "2025-11-22",
         trackingSteps: [
           {
@@ -182,7 +182,7 @@ const Orders = () => {
           email: "mike@example.com",
           avatar: "https://i.pravatar.cc/150?img=7",
         },
-        deliveryAddress: "Room 101, Hall 5, NSU Campus",
+        deliveryAddress: "Room 101, Taramon Bibi Hall, JUST Campus",
         estimatedDelivery: "N/A",
         trackingSteps: [
           {
