@@ -16,16 +16,18 @@ import {
   FaUserCircle,
   FaClock,
   FaCheckCircle,
+  FaShippingFast,
+  FaTimesCircle,
+  FaPhone,
 } from "react-icons/fa";
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
   const { getWishlistItemsCount } = useContext(WishlistContext);
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [myProducts, setMyProducts] = useState([]);
-  const [myOrders, setMyOrders] = useState([]);
+  const [sellerOrders, setSellerOrders] = useState([]);
 
   useEffect(() => {
     if (!user) {
@@ -37,11 +39,61 @@ const Dashboard = () => {
     fetch("/Data.json")
       .then((response) => response.json())
       .then((jsonData) => {
-        setData(jsonData);
         // Filter products by current user (mock for demonstration)
         // In production, you'd filter by user ID
         const userProducts = jsonData.products.slice(0, 3); // Mock: showing first 3
         setMyProducts(userProducts);
+
+        // Mock seller orders - orders received for products the seller has listed
+        // In production, this would come from a real API filtering by seller ID
+        const mockSellerOrders = [
+          {
+            id: "SO-2025-001",
+            orderDate: "2025-11-17",
+            status: "Pending",
+            buyer: {
+              name: "Ahmed Rahman",
+              phone: "+880 1711-234567",
+              email: "ahmed@student.edu",
+              avatar: "https://i.pravatar.cc/150?img=12",
+            },
+            product: jsonData.products[0], // First product as example
+            quantity: 1,
+            totalAmount: jsonData.products[0]?.price || 0,
+            deliveryAddress: "Room 305, Hall 4, DU Campus",
+          },
+          {
+            id: "SO-2025-002",
+            orderDate: "2025-11-16",
+            status: "Shipped",
+            buyer: {
+              name: "Fatima Khan",
+              phone: "+880 1812-345678",
+              email: "fatima@student.edu",
+              avatar: "https://i.pravatar.cc/150?img=20",
+            },
+            product: jsonData.products[1],
+            quantity: 1,
+            totalAmount: jsonData.products[1]?.price || 0,
+            deliveryAddress: "House 12, Road 5, Banani",
+          },
+          {
+            id: "SO-2025-003",
+            orderDate: "2025-11-15",
+            status: "Delivered",
+            buyer: {
+              name: "Kamal Hossain",
+              phone: "+880 1912-456789",
+              email: "kamal@student.edu",
+              avatar: "https://i.pravatar.cc/150?img=15",
+            },
+            product: jsonData.products[2],
+            quantity: 1,
+            totalAmount: jsonData.products[2]?.price || 0,
+            deliveryAddress: "Room 201, Hall 2, BUET Campus",
+          },
+        ];
+        setSellerOrders(mockSellerOrders);
         setLoading(false);
       })
       .catch((error) => {
@@ -61,6 +113,11 @@ const Dashboard = () => {
     );
   }
 
+  // Calculate total earnings from delivered orders
+  const totalEarnings = sellerOrders
+    .filter((order) => order.status === "Delivered")
+    .reduce((sum, order) => sum + order.totalAmount, 0);
+
   const stats = [
     {
       title: "Active Listings",
@@ -72,22 +129,22 @@ const Dashboard = () => {
       link: "/my-products",
     },
     {
-      title: "Total Orders",
-      value: myOrders.length,
+      title: "Orders Received",
+      value: sellerOrders.length,
       icon: <FaShoppingBag />,
       color: "green",
       bgColor: "bg-green-100",
       textColor: "text-green-600",
-      link: "/orders",
+      link: "/dashboard",
     },
     {
       title: "Total Earnings",
-      value: "৳0",
+      value: `৳${totalEarnings.toLocaleString()}`,
       icon: <FaDollarSign />,
       color: "purple",
       bgColor: "bg-purple-100",
       textColor: "text-purple-600",
-      link: "/orders",
+      link: "/dashboard",
     },
     {
       title: "Wishlist Items",
@@ -122,7 +179,7 @@ const Dashboard = () => {
                 Welcome back, {user?.displayName || "User"}!
               </h1>
               <p className="text-blue-100">
-                Manage your products, orders, and profile
+                Manage your products, seller orders, and profile
               </p>
             </div>
           </div>
@@ -152,8 +209,117 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* My Products Section */}
+          {/* Recent Orders Section */}
           <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Recent Orders Received
+                </h2>
+                <span className="text-sm text-gray-500">
+                  {sellerOrders.length} total orders
+                </span>
+              </div>
+
+              {sellerOrders.length === 0 ? (
+                <div className="text-center py-12">
+                  <FaShoppingBag className="text-6xl text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    No orders yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Orders for your products will appear here
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sellerOrders.slice(0, 3).map((order) => (
+                    <div
+                      key={order.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-sm text-gray-500">Order ID</p>
+                          <p className="font-bold text-gray-800">{order.id}</p>
+                        </div>
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            order.status === "Delivered"
+                              ? "bg-green-100 text-green-700"
+                              : order.status === "Shipped"
+                              ? "bg-blue-100 text-blue-700"
+                              : order.status === "Pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {order.status === "Delivered" && (
+                            <FaCheckCircle className="inline mr-1" />
+                          )}
+                          {order.status === "Shipped" && (
+                            <FaShippingFast className="inline mr-1" />
+                          )}
+                          {order.status === "Pending" && (
+                            <FaClock className="inline mr-1" />
+                          )}
+                          {order.status}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <img
+                          src={order.product?.image}
+                          alt={order.product?.title}
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 mb-1">
+                            {order.product?.title}
+                          </h3>
+                          <p className="text-sm text-gray-500 mb-2">
+                            Quantity: {order.quantity}
+                          </p>
+                          <p className="text-lg font-bold text-teal-600">
+                            ৳{order.totalAmount.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={order.buyer.avatar}
+                              alt={order.buyer.name}
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-800">
+                                {order.buyer.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(order.orderDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <button className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1">
+                            <FaPhone /> Contact
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {sellerOrders.length > 3 && (
+                    <button className="block text-center w-full py-3 text-teal-600 hover:text-teal-700 font-semibold">
+                      View All Orders →
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* My Products Section */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
@@ -333,22 +499,39 @@ const Dashboard = () => {
               </h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3 text-sm">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                     <FaCheckCircle className="text-green-600" />
                   </div>
                   <div>
-                    <p className="text-gray-800 font-medium">Product viewed</p>
+                    <p className="text-gray-800 font-medium">
+                      New order received
+                    </p>
                     <p className="text-gray-500 text-xs flex items-center gap-1">
-                      <FaClock /> 2 hours ago
+                      <FaClock /> 1 hour ago
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 text-sm">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FaChartLine className="text-blue-600" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+                    <FaEye className="text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-gray-800 font-medium">Profile updated</p>
+                    <p className="text-gray-800 font-medium">
+                      Product viewed 15 times
+                    </p>
+                    <p className="text-gray-500 text-xs flex items-center gap-1">
+                      <FaClock /> 3 hours ago
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 text-sm">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+                    <FaChartLine className="text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-800 font-medium">
+                      Product listing updated
+                    </p>
                     <p className="text-gray-500 text-xs flex items-center gap-1">
                       <FaClock /> 1 day ago
                     </p>
