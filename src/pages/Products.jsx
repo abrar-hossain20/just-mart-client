@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate, useLocation } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
+import { API_ENDPOINTS } from "../config/api";
 import {
   FaSearch,
   FaFilter,
@@ -38,19 +39,32 @@ const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [addedProductId, setAddedProductId] = useState(null);
 
+  // Scroll to top on component mount
   useEffect(() => {
-    // Fetch data from Data.json
-    fetch("/Data.json")
-      .then((response) => response.json())
-      .then((jsonData) => {
-        setData(jsonData);
-        setFilteredProducts(jsonData.products || []);
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    // Fetch products and categories from backend API
+    const fetchData = async () => {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(API_ENDPOINTS.PRODUCTS),
+          fetch(API_ENDPOINTS.CATEGORIES),
+        ]);
+
+        const products = await productsRes.json();
+        const categories = await categoriesRes.json();
+
+        setData({ products, categories });
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error loading data:", error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   // Set search query from URL parameter
@@ -80,29 +94,29 @@ const Products = () => {
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
           product.tags?.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
 
     // Category filter
     if (selectedCategory !== "All Categories") {
       filtered = filtered.filter(
-        (product) => product.category === selectedCategory
+        (product) => product.category === selectedCategory,
       );
     }
 
     // Condition filter
     if (selectedCondition !== "All") {
       filtered = filtered.filter(
-        (product) => product.condition === selectedCondition
+        (product) => product.condition === selectedCondition,
       );
     }
 
     // Price range filter
     filtered = filtered.filter(
       (product) =>
-        product.price >= priceRange[0] && product.price <= priceRange[1]
+        product.price >= priceRange[0] && product.price <= priceRange[1],
     );
 
     // Sort
@@ -115,7 +129,7 @@ const Products = () => {
         break;
       case "newest":
         filtered.sort(
-          (a, b) => new Date(b.datePosted) - new Date(a.datePosted)
+          (a, b) => new Date(b.datePosted) - new Date(a.datePosted),
         );
         break;
       case "popular":
@@ -156,7 +170,7 @@ const Products = () => {
     }
 
     addToCart(product);
-    setAddedProductId(product.id);
+    setAddedProductId(product._id);
     setTimeout(() => {
       setAddedProductId(null);
     }, 2000);
@@ -171,8 +185,8 @@ const Products = () => {
       return;
     }
 
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
+    if (isInWishlist(product._id)) {
+      removeFromWishlist(product._id);
     } else {
       addToWishlist(product);
     }
@@ -409,12 +423,16 @@ const Products = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <div
-                    key={product.id}
+                    key={product._id}
                     className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="relative">
                       <img
-                        src={product.image}
+                        src={
+                          product.images?.[0] ||
+                          product.image ||
+                          "https://via.placeholder.com/300x200"
+                        }
                         alt={product.title}
                         className="w-full h-48 object-cover"
                       />
@@ -424,38 +442,43 @@ const Products = () => {
                       >
                         <FaHeart
                           className={`${
-                            isInWishlist(product.id)
+                            isInWishlist(product._id)
                               ? "text-red-500"
                               : "text-gray-400"
                           } transition-colors`}
                         />
                       </button>
-                      <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-                        {Math.round(
-                          ((product.originalPrice - product.price) /
-                            product.originalPrice) *
-                            100
+                      {product.condition === "New" &&
+                        product.originalPrice &&
+                        product.originalPrice > product.price && (
+                          <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                            {Math.round(
+                              ((product.originalPrice - product.price) /
+                                product.originalPrice) *
+                                100,
+                            )}
+                            % OFF
+                          </span>
                         )}
-                        % OFF
-                      </span>
                       <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {product.condition}
                       </span>
-                      {product.rating && (
-                        <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                          <FaStar className="text-yellow-400 text-xs" />
-                          <span className="text-xs font-semibold text-gray-800">
-                            {product.rating}
-                          </span>
-                        </div>
-                      )}
+                      {product.condition === "New" &&
+                        product.rating >= 0 && (
+                          <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                            <FaStar className="text-yellow-400 text-xs" />
+                            <span className="text-xs font-semibold text-gray-800">
+                              {product.rating}
+                            </span>
+                          </div>
+                        )}
                     </div>
                     <div className="p-4">
                       <p className="text-xs text-gray-500 mb-1">
                         {product.category}
                       </p>
                       <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2 hover:text-teal-600 transition-colors">
-                        <Link to={`/product/${product.id}`}>
+                        <Link to={`/product/${product._id}`}>
                           {product.title}
                         </Link>
                       </h3>
@@ -464,9 +487,11 @@ const Products = () => {
                           <p className="text-xl font-bold text-teal-600">
                             ৳{product.price.toLocaleString()}
                           </p>
-                          <p className="text-xs text-gray-400 line-through">
-                            ৳{product.originalPrice.toLocaleString()}
-                          </p>
+                          {product.originalPrice && (
+                            <p className="text-xs text-gray-400 line-through">
+                              ৳{product.originalPrice.toLocaleString()}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="border-t border-gray-200 pt-3 mt-3">
@@ -480,25 +505,27 @@ const Products = () => {
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-gray-600 flex-1 truncate">
-                            {product.seller?.name || product.seller}
-                          </p>
+                          {product.sellerName && (
+                            <p className="text-sm text-gray-600 flex-1 truncate">
+                              {product.sellerName}
+                            </p>
+                          )}
                           <button
                             onClick={(e) => handleAddToCart(e, product)}
-                            disabled={isInCart(product.id)}
+                            disabled={isInCart(product._id)}
                             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
-                              isInCart(product.id)
+                              isInCart(product._id)
                                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                : addedProductId === product.id
-                                ? "bg-green-500 text-white"
-                                : "bg-teal-600 text-white hover:bg-teal-700"
+                                : addedProductId === product._id
+                                  ? "bg-green-500 text-white"
+                                  : "bg-teal-600 text-white hover:bg-teal-700"
                             }`}
                           >
-                            {isInCart(product.id) ? (
+                            {isInCart(product._id) ? (
                               <>
                                 <FaCheckCircle /> In Cart
                               </>
-                            ) : addedProductId === product.id ? (
+                            ) : addedProductId === product._id ? (
                               <>
                                 <FaCheckCircle /> Added!
                               </>
@@ -518,35 +545,45 @@ const Products = () => {
               <div className="space-y-4">
                 {filteredProducts.map((product) => (
                   <div
-                    key={product.id}
+                    key={product._id}
                     className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
                   >
                     <div className="flex flex-col sm:flex-row">
                       <div className="relative sm:w-64 h-48 sm:h-auto">
                         <img
-                          src={product.image}
+                          src={
+                            product.images?.[0] ||
+                            product.image ||
+                            "https://via.placeholder.com/300x200"
+                          }
                           alt={product.title}
                           className="w-full h-full object-cover"
                         />
-                        <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-                          {Math.round(
-                            ((product.originalPrice - product.price) /
-                              product.originalPrice) *
-                              100
+                        {product.condition === "New" &&
+                          product.originalPrice &&
+                          product.originalPrice > product.price && (
+                            <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                              {Math.round(
+                                ((product.originalPrice - product.price) /
+                                  product.originalPrice) *
+                                  100,
+                              )}
+                              % OFF
+                            </span>
                           )}
-                          % OFF
-                        </span>
                         <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                           {product.condition}
                         </span>
-                        {product.rating && (
-                          <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                            <FaStar className="text-yellow-400 text-xs" />
-                            <span className="text-xs font-semibold text-gray-800">
-                              {product.rating}
-                            </span>
-                          </div>
-                        )}
+                        {product.condition === "New" &&
+                          product.rating &&
+                          product.rating >= 0 && (
+                            <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                              <FaStar className="text-yellow-400 text-xs" />
+                              <span className="text-xs font-semibold text-gray-800">
+                                {product.rating}
+                              </span>
+                            </div>
+                          )}
                       </div>
                       <div className="flex-1 p-6">
                         <div className="flex justify-between items-start mb-3">
@@ -555,7 +592,7 @@ const Products = () => {
                               {product.category}
                             </p>
                             <h3 className="text-xl font-bold text-gray-800 mb-2 hover:text-teal-600 transition-colors">
-                              <Link to={`/product/${product.id}`}>
+                              <Link to={`/product/${product._id}`}>
                                 {product.title}
                               </Link>
                             </h3>
@@ -569,7 +606,7 @@ const Products = () => {
                           >
                             <FaHeart
                               className={`${
-                                isInWishlist(product.id)
+                                isInWishlist(product._id)
                                   ? "text-red-500"
                                   : "text-gray-400"
                               } transition-colors`}
@@ -581,9 +618,11 @@ const Products = () => {
                             <p className="text-2xl font-bold text-teal-600">
                               ৳{product.price.toLocaleString()}
                             </p>
-                            <p className="text-sm text-gray-400 line-through">
-                              ৳{product.originalPrice.toLocaleString()}
-                            </p>
+                            {product.originalPrice && (
+                              <p className="text-sm text-gray-400 line-through">
+                                ৳{product.originalPrice.toLocaleString()}
+                              </p>
+                            )}
                           </div>
                           <div className="flex items-center gap-6 text-sm text-gray-500">
                             <span className="flex items-center gap-1">
@@ -593,7 +632,7 @@ const Products = () => {
                             <span className="flex items-center gap-1">
                               <FaClock className="text-blue-500" />
                               {new Date(
-                                product.datePosted
+                                product.datePosted,
                               ).toLocaleDateString()}
                             </span>
                             <span className="flex items-center gap-1">
@@ -602,28 +641,27 @@ const Products = () => {
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-gray-600">
-                              Seller:{" "}
-                              <strong>
-                                {product.seller?.name || product.seller}
-                              </strong>
-                            </span>
+                            {product.sellerName && (
+                              <span className="text-sm text-gray-600">
+                                Seller: <strong>{product.sellerName}</strong>
+                              </span>
+                            )}
                             <button
                               onClick={(e) => handleAddToCart(e, product)}
-                              disabled={isInCart(product.id)}
+                              disabled={isInCart(product._id)}
                               className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                                isInCart(product.id)
+                                isInCart(product._id)
                                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                  : addedProductId === product.id
-                                  ? "bg-green-500 text-white"
-                                  : "bg-teal-600 text-white hover:bg-teal-700"
+                                  : addedProductId === product._id
+                                    ? "bg-green-500 text-white"
+                                    : "bg-teal-600 text-white hover:bg-teal-700"
                               }`}
                             >
-                              {isInCart(product.id) ? (
+                              {isInCart(product._id) ? (
                                 <>
                                   <FaCheckCircle /> In Cart
                                 </>
-                              ) : addedProductId === product.id ? (
+                              ) : addedProductId === product._id ? (
                                 <>
                                   <FaCheckCircle /> Added!
                                 </>

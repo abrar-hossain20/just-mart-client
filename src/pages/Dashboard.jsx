@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
+import { API_ENDPOINTS } from "../config/api";
 import {
   FaBox,
   FaShoppingBag,
@@ -35,71 +36,73 @@ const Dashboard = () => {
       return;
     }
 
-    // Fetch data from Data.json
-    fetch("/Data.json")
-      .then((response) => response.json())
-      .then((jsonData) => {
+    // Fetch data from backend API
+    const fetchData = async () => {
+      try {
+        const [productsRes, ordersRes] = await Promise.all([
+          fetch(API_ENDPOINTS.PRODUCTS),
+          user?.email
+            ? fetch(API_ENDPOINTS.ORDERS(user.email))
+            : Promise.resolve({ json: () => [] }),
+        ]);
+
+        const products = await productsRes.json();
+        const orders = user?.email ? await ordersRes.json() : [];
+
         // Filter products by current user (mock for demonstration)
         // In production, you'd filter by user ID
-        const userProducts = jsonData.products.slice(0, 3); // Mock: showing first 3
+        const userProducts = products.slice(0, 3); // Mock: showing first 3
         setMyProducts(userProducts);
 
         // Mock seller orders - orders received for products the seller has listed
         // In production, this would come from a real API filtering by seller ID
-        const mockSellerOrders = [
-          {
-            id: "SO-2025-001",
-            orderDate: "2025-11-17",
-            status: "Pending",
-            buyer: {
-              name: "Ahmed Rahman",
-              phone: "+880 1711-234567",
-              email: "ahmed@student.edu",
-              avatar: "https://i.pravatar.cc/150?img=12",
-            },
-            product: jsonData.products[0], // First product as example
-            quantity: 1,
-            totalAmount: jsonData.products[0]?.price || 0,
-            deliveryAddress: "Room 305, Hall 4, DU Campus",
+        const mockSellerOrders = products.slice(0, 3).map((product, idx) => ({
+          id: `SO-2025-${String(idx + 1).padStart(3, "0")}`,
+          orderDate: new Date(Date.now() - idx * 86400000)
+            .toISOString()
+            .split("T")[0],
+          status: idx === 0 ? "Pending" : idx === 1 ? "Shipped" : "Delivered",
+          buyer: {
+            name:
+              idx === 0
+                ? "Ahmed Rahman"
+                : idx === 1
+                  ? "Fatima Khan"
+                  : "Kamal Hossain",
+            phone:
+              idx === 0
+                ? "+880 1711-234567"
+                : idx === 1
+                  ? "+880 1812-345678"
+                  : "+880 1912-456789",
+            email:
+              idx === 0
+                ? "ahmed@student.edu"
+                : idx === 1
+                  ? "fatima@student.edu"
+                  : "kamal@student.edu",
+            avatar: `https://i.pravatar.cc/150?img=${12 + idx * 4}`,
           },
-          {
-            id: "SO-2025-002",
-            orderDate: "2025-11-16",
-            status: "Shipped",
-            buyer: {
-              name: "Fatima Khan",
-              phone: "+880 1812-345678",
-              email: "fatima@student.edu",
-              avatar: "https://i.pravatar.cc/150?img=20",
-            },
-            product: jsonData.products[1],
-            quantity: 1,
-            totalAmount: jsonData.products[1]?.price || 0,
-            deliveryAddress: "House 12, Road 5, Banani",
-          },
-          {
-            id: "SO-2025-003",
-            orderDate: "2025-11-15",
-            status: "Delivered",
-            buyer: {
-              name: "Kamal Hossain",
-              phone: "+880 1912-456789",
-              email: "kamal@student.edu",
-              avatar: "https://i.pravatar.cc/150?img=15",
-            },
-            product: jsonData.products[2],
-            quantity: 1,
-            totalAmount: jsonData.products[2]?.price || 0,
-            deliveryAddress: "Room 201, Hall 2, BUET Campus",
-          },
-        ];
+          product: product,
+          quantity: 1,
+          totalAmount: product?.price || 0,
+          deliveryAddress:
+            idx === 0
+              ? "Room 305, Hall 4, DU Campus"
+              : idx === 1
+                ? "House 12, Road 5, Banani"
+                : "Room 201, Hall 2, BUET Campus",
+        }));
+
         setSellerOrders(mockSellerOrders);
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error loading data:", error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [user, navigate]);
 
   if (loading) {
@@ -248,10 +251,10 @@ const Dashboard = () => {
                             order.status === "Delivered"
                               ? "bg-green-100 text-green-700"
                               : order.status === "Shipped"
-                              ? "bg-blue-100 text-blue-700"
-                              : order.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
+                                ? "bg-blue-100 text-blue-700"
+                                : order.status === "Pending"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
                           }`}
                         >
                           {order.status === "Delivered" && (
@@ -464,7 +467,7 @@ const Dashboard = () => {
                   <span className="font-semibold text-gray-800">
                     {user?.metadata?.creationTime
                       ? new Date(
-                          user.metadata.creationTime
+                          user.metadata.creationTime,
                         ).toLocaleDateString()
                       : "N/A"}
                   </span>

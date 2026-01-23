@@ -1,57 +1,162 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { CartContext } from "./CartContext";
+import { AuthContext } from "./AuthContext";
+import { API_ENDPOINTS } from "../config/api";
 
 const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useContext(AuthContext);
 
-  // Load cart from localStorage on mount
+  // Fetch cart from backend when user logs in
   useEffect(() => {
-    const savedCart = localStorage.getItem("justMartCart");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    if (user?.email) {
+      fetchCart();
+    } else {
+      setCart([]);
     }
-  }, []);
+  }, [user]);
 
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("justMartCart", JSON.stringify(cart));
-  }, [cart]);
+  const fetchCart = async () => {
+    if (!user?.email) return;
 
-  const addToCart = (product) => {
+    try {
+      setLoading(true);
+      const response = await fetch(API_ENDPOINTS.CART(user.email));
+      const data = await response.json();
+
+      if (data.items && data.items.length > 0) {
+        // Fetch full product details for each item
+        const productPromises = data.items.map(async (item) => {
+          const res = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(item.productId));
+          const product = await res.json();
+          return { ...product, quantity: item.quantity };
+        });
+        const products = await Promise.all(productPromises);
+        setCart(products.filter((p) => p));
+      } else {
+        setCart([]);
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      setCart([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addToCart = async (product) => {
+    if (!user?.email) {
+      console.error("User must be logged in to add to cart");
+      return;
+    }
+
+    // Optimistically update UI
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find((item) => item._id === product._id);
       if (existingItem) {
-        // If product already in cart, increase quantity
         return prevCart.map((item) =>
-          item.id === product.id
+          item._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
-            : item
+            : item,
         );
       } else {
-        // Add new product with quantity 1
         return [...prevCart, { ...product, quantity: 1 }];
       }
     });
+
+    try {
+      const response = await fetch(API_ENDPOINTS.CART(user.email), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product._id, quantity: 1 }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add to cart");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      // Revert optimistic update
+      await fetchCart();
+    }
   };
 
-  const removeFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+  const removeFromCart = async (productId) => {
+    if (!user?.email) return;
+
+    const previousCart = [...cart];
+    setCart((prevCart) => prevCart.filter((item) => item._id !== productId));
+
+    try {
+      const response = await fetch(
+        API_ENDPOINTS.CART_ITEM(user.email, productId),
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove from cart");
+      }
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      setCart(previousCart);
+    }
   };
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = async (productId, quantity) => {
+    if (!user?.email) return;
+
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
+
+    const previousCart = [...cart];
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
+        item._id === productId ? { ...item, quantity } : item,
+      ),
     );
+
+    try {
+      const response = await fetch(
+        API_ENDPOINTS.CART_ITEM(user.email, productId),
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quantity }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update quantity");
+      }
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      setCart(previousCart);
+    }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    if (!user?.email) return;
+
+    const previousCart = [...cart];
     setCart([]);
+
+    try {
+      const response = await fetch(API_ENDPOINTS.CART(user.email), {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to clear cart");
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      setCart(previousCart);
+    }
   };
 
   const getCartTotal = () => {
@@ -63,7 +168,7 @@ const CartProvider = ({ children }) => {
   };
 
   const isInCart = (productId) => {
-    return cart.some((item) => item.id === productId);
+    return cart.some((item) => item._id === productId);
   };
 
   const cartInfo = {
@@ -75,6 +180,7 @@ const CartProvider = ({ children }) => {
     getCartTotal,
     getCartItemsCount,
     isInCart,
+    loading,
   };
 
   return (

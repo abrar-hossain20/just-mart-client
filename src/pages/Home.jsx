@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { API_ENDPOINTS } from "../config/api";
 import {
   FaSearch,
   FaShieldAlt,
@@ -25,17 +26,33 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
   useEffect(() => {
-    // Fetch data from Data.json
-    fetch("/Data.json")
-      .then((response) => response.json())
-      .then((jsonData) => {
-        setData(jsonData);
+    // Fetch data from backend and local file
+    const fetchData = async () => {
+      try {
+        const [productsRes, localDataRes, statsRes] = await Promise.all([
+          fetch(API_ENDPOINTS.PRODUCTS),
+          fetch("/Data.json"),
+          fetch(API_ENDPOINTS.STATS),
+        ]);
+
+        const products = await productsRes.json();
+        const localData = await localDataRes.json();
+        const stats = await statsRes.json();
+
+        setData({
+          products,
+          categories: localData.categories || [],
+          testimonials: localData.testimonials || [],
+          stats,
+        });
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("Error loading data:", error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   if (loading) {
@@ -257,8 +274,8 @@ const Home = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
               <Link
-                key={product.id}
-                to={`/product/${product.id}`}
+                key={product._id}
+                to={`/product/${product._id}`}
                 className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="relative">
@@ -271,7 +288,7 @@ const Home = () => {
                     {Math.round(
                       ((product.originalPrice - product.price) /
                         product.originalPrice) *
-                        100
+                        100,
                     )}
                     % OFF
                   </span>

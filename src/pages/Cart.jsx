@@ -53,17 +53,21 @@ const Cart = () => {
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <div
-                key={item.id}
+                key={item._id}
                 className="bg-white rounded-lg shadow-md p-4 sm:p-6"
               >
                 <div className="flex flex-col sm:flex-row gap-4">
                   {/* Product Image */}
                   <Link
-                    to={`/product/${item.id}`}
+                    to={`/product/${item._id}`}
                     className="w-full sm:w-32 h-32 shrink-0"
                   >
                     <img
-                      src={item.image}
+                      src={
+                        item.images?.[0] ||
+                        item.image ||
+                        "https://via.placeholder.com/150"
+                      }
                       alt={item.title}
                       className="w-full h-full object-cover rounded-lg"
                     />
@@ -74,7 +78,7 @@ const Cart = () => {
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
                         <Link
-                          to={`/product/${item.id}`}
+                          to={`/product/${item._id}`}
                           className="text-lg font-semibold text-gray-800 hover:text-teal-600 transition-colors line-clamp-2"
                         >
                           {item.title}
@@ -85,7 +89,7 @@ const Cart = () => {
                         <p className="text-sm text-gray-500">{item.location}</p>
                       </div>
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => removeFromCart(item._id)}
                         className="text-red-500 hover:text-red-700 p-2"
                         title="Remove from cart"
                       >
@@ -98,7 +102,7 @@ const Cart = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
+                            updateQuantity(item._id, item.quantity - 1)
                           }
                           className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                           disabled={item.quantity <= 1}
@@ -110,7 +114,7 @@ const Cart = () => {
                         </span>
                         <button
                           onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
+                            updateQuantity(item._id, item.quantity + 1)
                           }
                           className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                         >

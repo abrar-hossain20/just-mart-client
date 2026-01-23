@@ -99,51 +99,60 @@ const Wishlist = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {wishlistItems.map((product) => (
                 <div
-                  key={product.id}
+                  key={product._id}
                   className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >
-                  <Link to={`/product/${product.id}`}>
+                  <Link to={`/product/${product._id}`}>
                     <div className="relative">
                       <img
-                        src={product.image}
+                        src={
+                          product.images?.[0] ||
+                          product.image ||
+                          "https://via.placeholder.com/300x200"
+                        }
                         alt={product.title}
                         className="w-full h-48 object-cover"
                       />
                       <button
                         onClick={(e) => {
                           e.preventDefault();
-                          removeFromWishlist(product.id);
+                          removeFromWishlist(product._id);
                         }}
                         className="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-50 transition-colors shadow-md"
                       >
                         <FaHeart className="text-red-500" />
                       </button>
-                      <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-                        {Math.round(
-                          ((product.originalPrice - product.price) /
-                            product.originalPrice) *
-                            100
+                      {product.originalPrice &&
+                        product.originalPrice > product.price && (
+                          <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                            {Math.round(
+                              ((product.originalPrice - product.price) /
+                                product.originalPrice) *
+                                100,
+                            )}
+                            % OFF
+                          </span>
                         )}
-                        % OFF
-                      </span>
                       <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {product.condition}
                       </span>
-                      {product.rating && (
-                        <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                          <FaStar className="text-yellow-400 text-xs" />
-                          <span className="text-xs font-semibold text-gray-800">
-                            {product.rating}
-                          </span>
-                        </div>
-                      )}
+                      {product.condition === "New" &&
+                        product.rating &&
+                        product.rating >= 0 && (
+                          <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                            <FaStar className="text-yellow-400 text-xs" />
+                            <span className="text-xs font-semibold text-gray-800">
+                              {product.rating}
+                            </span>
+                          </div>
+                        )}
                     </div>
                   </Link>
                   <div className="p-4">
                     <p className="text-xs text-gray-500 mb-1">
                       {product.category}
                     </p>
-                    <Link to={`/product/${product.id}`}>
+                    <Link to={`/product/${product._id}`}>
                       <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2 hover:text-teal-600 transition-colors">
                         {product.title}
                       </h3>
@@ -153,9 +162,11 @@ const Wishlist = () => {
                         <p className="text-xl font-bold text-teal-600">
                           ৳{product.price.toLocaleString()}
                         </p>
-                        <p className="text-xs text-gray-400 line-through">
-                          ৳{product.originalPrice.toLocaleString()}
-                        </p>
+                        {product.originalPrice && (
+                          <p className="text-xs text-gray-400 line-through">
+                            ৳{product.originalPrice.toLocaleString()}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="border-t border-gray-200 pt-3">
@@ -166,18 +177,18 @@ const Wishlist = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleAddToCart(product)}
-                          disabled={isInCart(product.id)}
+                          disabled={isInCart(product._id)}
                           className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-1 ${
-                            isInCart(product.id)
+                            isInCart(product._id)
                               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                               : "bg-teal-600 text-white hover:bg-teal-700"
                           }`}
                         >
                           <FaShoppingCart />
-                          {isInCart(product.id) ? "In Cart" : "Add to Cart"}
+                          {isInCart(product._id) ? "In Cart" : "Add to Cart"}
                         </button>
                         <button
-                          onClick={() => removeFromWishlist(product.id)}
+                          onClick={() => removeFromWishlist(product._id)}
                           className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
                         >
                           <FaTrash />

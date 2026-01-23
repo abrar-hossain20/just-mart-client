@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
+import { API_ENDPOINTS } from "../config/api";
 import {
   FaArrowLeft,
   FaHeart,
@@ -36,32 +37,45 @@ const ProductDetails = () => {
   const [showAddedMessage, setShowAddedMessage] = useState(false);
 
   useEffect(() => {
-    // Fetch data from Data.json
-    fetch("/Data.json")
-      .then((response) => response.json())
-      .then((jsonData) => {
-        const foundProduct = jsonData.products.find(
-          (p) => p.id === parseInt(id)
-        );
-        if (foundProduct) {
-          setProduct(foundProduct);
-          setSelectedImage(foundProduct.image);
-
-          // Get related products from same category
-          const related = jsonData.products
-            .filter(
-              (p) =>
-                p.category === foundProduct.category && p.id !== foundProduct.id
-            )
-            .slice(0, 4);
-          setRelatedProducts(related);
+    // Fetch product from backend API
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(id));
+        if (!response.ok) {
+          throw new Error("Product not found");
         }
+
+        const foundProduct = await response.json();
+        setProduct(foundProduct);
+
+        // Set the first image from images array or fallback to single image
+        const firstImage =
+          foundProduct.images?.[0] ||
+          foundProduct.image ||
+          "https://via.placeholder.com/400";
+        setSelectedImage(firstImage);
+
+        // Fetch all products to get related ones
+        const allProductsRes = await fetch(API_ENDPOINTS.PRODUCTS);
+        const allProducts = await allProductsRes.json();
+
+        // Get related products from same category
+        const related = allProducts
+          .filter(
+            (p) =>
+              p.category === foundProduct.category &&
+              p._id !== foundProduct._id,
+          )
+          .slice(0, 4);
+        setRelatedProducts(related);
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error loading data:", error);
+      } catch (error) {
+        console.error("Error loading product:", error);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
   if (loading || authLoading) {
@@ -134,7 +148,7 @@ const ProductDetails = () => {
   }
 
   const discountPercentage = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100
+    ((product.originalPrice - product.price) / product.originalPrice) * 100,
   );
 
   const handleAddToCart = () => {
@@ -155,8 +169,8 @@ const ProductDetails = () => {
       return;
     }
 
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
+    if (isInWishlist(product._id)) {
+      removeFromWishlist(product._id);
     } else {
       addToWishlist(product);
     }
@@ -208,23 +222,57 @@ const ProductDetails = () => {
                 alt={product.title}
                 className="w-full h-96 object-cover"
               />
-              {discountPercentage > 0 && (
-                <span className="absolute top-4 left-4 bg-linear-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                  {discountPercentage}% OFF
-                </span>
-              )}
+              {product.originalPrice &&
+                product.originalPrice > product.price && (
+                  <span className="absolute top-4 left-4 bg-linear-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    {Math.round(
+                      ((product.originalPrice - product.price) /
+                        product.originalPrice) *
+                        100,
+                    )}
+                    % OFF
+                  </span>
+                )}
               <span className="absolute top-4 right-4 bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                 {product.condition}
               </span>
-              {product.rating && (
-                <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
-                  <FaStar className="text-yellow-400" />
-                  <span className="text-sm font-bold text-gray-800">
-                    {product.rating}
-                  </span>
-                </div>
-              )}
+              {product.condition === "New" &&
+                product.rating &&
+                product.rating >= 0 && (
+                  <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
+                    <FaStar className="text-yellow-400" />
+                    <span className="text-sm font-bold text-gray-800">
+                      {product.rating}
+                    </span>
+                  </div>
+                )}
             </div>
+
+            {/* Thumbnail Images */}
+            {product.images && product.images.length > 0 && (
+              <div className="grid grid-cols-5 gap-2">
+                {product.images.map((img, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(img)}
+                    className={`bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition-all hover:scale-105 ${
+                      selectedImage === img
+                        ? "ring-2 ring-teal-600 scale-105"
+                        : ""
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`${product.title} ${index + 1}`}
+                      className="w-full h-20 object-cover"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/100";
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info Section */}
@@ -238,36 +286,37 @@ const ProductDetails = () => {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {product.title}
                   </h1>
-                  {product.rating && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1 text-yellow-400">
-                        <FaStar />
-                        <FaStar />
-                        <FaStar />
-                        <FaStar />
-                        <FaStar />
+                  {product.condition === "New" &&
+                    product.rating >= 0 && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-1 text-yellow-400">
+                          <FaStar />
+                          <FaStar />
+                          <FaStar />
+                          <FaStar />
+                          <FaStar />
+                        </div>
+                        <span className="text-lg font-bold text-gray-800">
+                          {product.rating}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          ({product.views} reviews)
+                        </span>
                       </div>
-                      <span className="text-lg font-bold text-gray-800">
-                        {product.rating}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        ({product.views} reviews)
-                      </span>
-                    </div>
-                  )}
+                    )}
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleWishlistToggle}
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                      isInWishlist(product.id)
+                      isInWishlist(product._id)
                         ? "bg-red-50"
                         : "bg-gray-100 hover:bg-red-50"
                     }`}
                   >
                     <FaHeart
                       className={`${
-                        isInWishlist(product.id)
+                        isInWishlist(product._id)
                           ? "text-red-500"
                           : "text-gray-600"
                       } transition-colors`}
@@ -351,15 +400,15 @@ const ProductDetails = () => {
               </button>
               <button
                 onClick={handleAddToCart}
-                disabled={isInCart(product.id)}
+                disabled={isInCart(product._id)}
                 className={`w-full py-4 rounded-lg font-bold text-lg transition-colors flex items-center justify-center gap-2 ${
-                  isInCart(product.id)
+                  isInCart(product._id)
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-white border-2 border-teal-600 text-teal-600 hover:bg-teal-50"
                 }`}
               >
                 <FaShoppingCart />
-                {isInCart(product.id) ? "Already in Cart" : "Add to Cart"}
+                {isInCart(product._id) ? "Already in Cart" : "Add to Cart"}
               </button>
             </div>
           </div>
@@ -370,38 +419,57 @@ const ProductDetails = () => {
           <h3 className="text-xl font-bold text-gray-800 mb-6">
             Seller Information
           </h3>
-          <div className="flex items-start gap-6">
-            <img
-              src={product.seller?.avatar || "https://i.pravatar.cc/150"}
-              alt={product.seller?.name || product.seller}
-              className="w-20 h-20 rounded-full object-cover"
-            />
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <div className="flex items-center gap-4 sm:flex-col sm:items-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                {(product.sellerName || product.seller?.name || "S")
+                  .charAt(0)
+                  .toUpperCase()}
+              </div>
+            </div>
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h4 className="text-lg font-bold text-gray-800">
-                  {product.seller?.name || product.seller}
-                </h4>
-                <div className="flex items-center gap-1 text-yellow-500">
-                  <FaStar />
-                  <span className="text-gray-700 font-semibold">
-                    {product.seller?.rating || "N/A"}
-                  </span>
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-1">
+                    {product.sellerName ||
+                      product.seller?.name ||
+                      "Anonymous Seller"}
+                  </h4>
+                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    <FaEnvelope className="text-teal-600" />
+                    {product.sellerEmail ||
+                      product.seller?.email ||
+                      "Not provided"}
+                  </p>
                 </div>
               </div>
-              {product.seller?.university && (
-                <p className="text-gray-600 mb-1">
-                  🎓 {product.seller.university}
-                </p>
-              )}
-              {product.seller?.department && (
-                <p className="text-gray-600 mb-4">
-                  📚 {product.seller.department}
-                </p>
-              )}
-              <div className="flex gap-3">
-                <button className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors flex items-center gap-2">
-                  <FaEnvelope /> Send Message
-                </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <FaClock className="text-teal-600" />
+                  <span>
+                    Member since{" "}
+                    {new Date(product.datePosted).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+                {product.location && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <FaMapMarkerAlt className="text-teal-600" />
+                    <span>{product.location}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={`mailto:${product.sellerEmail || product.seller?.email}`}
+                  className="px-4 py-2 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center gap-2"
+                >
+                  <FaEnvelope /> Contact Seller
+                </a>
                 <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2">
                   <FaUser /> View Profile
                 </button>
@@ -419,8 +487,8 @@ const ProductDetails = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <Link
-                  key={relatedProduct.id}
-                  to={`/product/${relatedProduct.id}`}
+                  key={relatedProduct._id}
+                  to={`/product/${relatedProduct._id}`}
                   className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className="relative">
@@ -433,7 +501,7 @@ const ProductDetails = () => {
                       {Math.round(
                         ((relatedProduct.originalPrice - relatedProduct.price) /
                           relatedProduct.originalPrice) *
-                          100
+                          100,
                       )}
                       % OFF
                     </span>

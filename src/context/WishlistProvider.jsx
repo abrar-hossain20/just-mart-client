@@ -1,45 +1,132 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { WishlistContext } from "./WishlistContext";
+import { AuthContext } from "./AuthContext";
+import { API_ENDPOINTS } from "../config/api";
 
 const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useContext(AuthContext);
 
-  // Load wishlist from localStorage on mount
+  // Fetch wishlist from backend when user logs in
   useEffect(() => {
-    const savedWishlist = localStorage.getItem("wishlist");
-    if (savedWishlist) {
-      setWishlistItems(JSON.parse(savedWishlist));
+    if (user?.email) {
+      fetchWishlist();
+    } else {
+      setWishlistItems([]);
     }
-  }, []);
+  }, [user]);
 
-  // Save wishlist to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
+  const fetchWishlist = async () => {
+    if (!user?.email) return;
 
-  const addToWishlist = (product) => {
-    setWishlistItems((prevItems) => {
-      // Check if product already exists in wishlist
-      const exists = prevItems.some((item) => item.id === product.id);
-      if (exists) {
-        return prevItems;
+    try {
+      setLoading(true);
+      const response = await fetch(API_ENDPOINTS.WISHLIST(user.email));
+      const data = await response.json();
+
+      if (data.items && data.items.length > 0) {
+        // Fetch full product details for each item
+        const productPromises = data.items.map((item) =>
+          fetch(API_ENDPOINTS.PRODUCT_BY_ID(item.productId)).then((res) =>
+            res.json(),
+          ),
+        );
+        const products = await Promise.all(productPromises);
+        setWishlistItems(products.filter((p) => p)); // Filter out null/undefined
+      } else {
+        setWishlistItems([]);
       }
-      return [...prevItems, product];
-    });
+    } catch (error) {
+      console.error("Error fetching wishlist:", error);
+      setWishlistItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeFromWishlist = (productId) => {
+  const addToWishlist = async (product) => {
+    if (!user?.email) {
+      console.error("User must be logged in to add to wishlist");
+      return;
+    }
+
+    // Optimistically update UI
+    setWishlistItems((prevItems) => {
+      const exists = prevItems.some((item) => item._id === product._id);
+      if (exists) return prevItems;
+      return [...prevItems, product];
+    });
+
+    try {
+      const response = await fetch(API_ENDPOINTS.WISHLIST(user.email), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product._id }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add to wishlist");
+      }
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      // Revert optimistic update on error
+      setWishlistItems((prevItems) =>
+        prevItems.filter((item) => item._id !== product._id),
+      );
+    }
+  };
+
+  const removeFromWishlist = async (productId) => {
+    if (!user?.email) return;
+
+    // Optimistically update UI
+    const previousItems = [...wishlistItems];
     setWishlistItems((prevItems) =>
-      prevItems.filter((item) => item.id !== productId)
+      prevItems.filter((item) => item._id !== productId),
     );
+
+    try {
+      const response = await fetch(
+        API_ENDPOINTS.WISHLIST_ITEM(user.email, productId),
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove from wishlist");
+      }
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      // Revert on error
+      setWishlistItems(previousItems);
+    }
   };
 
   const isInWishlist = (productId) => {
-    return wishlistItems.some((item) => item.id === productId);
+    return wishlistItems.some((item) => item._id === productId);
   };
 
-  const clearWishlist = () => {
+  const clearWishlist = async () => {
+    if (!user?.email) return;
+
+    const previousItems = [...wishlistItems];
     setWishlistItems([]);
+
+    try {
+      // Remove all items one by one
+      await Promise.all(
+        previousItems.map((item) =>
+          fetch(API_ENDPOINTS.WISHLIST_ITEM(user.email, item._id), {
+            method: "DELETE",
+          }),
+        ),
+      );
+    } catch (error) {
+      console.error("Error clearing wishlist:", error);
+      setWishlistItems(previousItems);
+    }
   };
 
   const getWishlistItemsCount = () => {
@@ -53,6 +140,7 @@ const WishlistProvider = ({ children }) => {
     isInWishlist,
     clearWishlist,
     getWishlistItemsCount,
+    loading,
   };
 
   return (
