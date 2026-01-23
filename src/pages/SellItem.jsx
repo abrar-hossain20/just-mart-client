@@ -138,7 +138,6 @@ const SellItem = () => {
         sellerEmail: user.email,
         sellerName: user.displayName || user.email,
         datePosted: new Date().toISOString(),
-        views: 0,
         rating: 0,
       };
 

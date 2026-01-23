@@ -374,10 +374,6 @@ const Dashboard = () => {
                               {product.category}
                             </p>
                             <div className="flex items-center gap-4 text-sm">
-                              <span className="flex items-center gap-1 text-gray-600">
-                                <FaEye className="text-blue-500" />
-                                {product.views} views
-                              </span>
                               {product.rating && (
                                 <span className="flex items-center gap-1 text-gray-600">
                                   <FaStar className="text-yellow-400" />

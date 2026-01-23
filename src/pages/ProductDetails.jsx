@@ -237,7 +237,6 @@ const ProductDetails = () => {
                 {product.condition}
               </span>
               {product.condition === "New" &&
-                product.rating &&
                 product.rating >= 0 && (
                   <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
                     <FaStar className="text-yellow-400" />
@@ -286,24 +285,18 @@ const ProductDetails = () => {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {product.title}
                   </h1>
-                  {product.condition === "New" &&
-                    product.rating >= 0 && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex items-center gap-1 text-yellow-400">
-                          <FaStar />
-                          <FaStar />
-                          <FaStar />
-                          <FaStar />
-                          <FaStar />
-                        </div>
-                        <span className="text-lg font-bold text-gray-800">
-                          {product.rating}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          ({product.views} reviews)
-                        </span>
+                  {product.condition === "New" && product.rating >= 0 && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1 text-yellow-400">
+                        {[...Array(parseInt(product.rating))].map((_, i) => (
+                          <FaStar key={i} />
+                        ))}
                       </div>
-                    )}
+                      <span className="text-lg font-bold text-gray-800">
+                        {product.rating}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -349,10 +342,6 @@ const ProductDetails = () => {
                 <span className="flex items-center gap-1">
                   <FaClock className="text-blue-500" />
                   Posted {new Date(product.datePosted).toLocaleDateString()}
-                </span>
-                <span className="flex items-center gap-1">
-                  <FaEye className="text-gray-400" />
-                  {product.views} views
                 </span>
               </div>
 

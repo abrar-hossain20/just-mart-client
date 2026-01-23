@@ -133,7 +133,7 @@ const Products = () => {
         );
         break;
       case "popular":
-        filtered.sort((a, b) => b.views - a.views);
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case "rating":
         filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -463,15 +463,14 @@ const Products = () => {
                       <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {product.condition}
                       </span>
-                      {product.condition === "New" &&
-                        product.rating >= 0 && (
-                          <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                            <FaStar className="text-yellow-400 text-xs" />
-                            <span className="text-xs font-semibold text-gray-800">
-                              {product.rating}
-                            </span>
-                          </div>
-                        )}
+                      {product.condition === "New" && product.rating >= 0 && (
+                        <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <FaStar className="text-yellow-400 text-xs" />
+                          <span className="text-xs font-semibold text-gray-800">
+                            {product.rating}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="p-4">
                       <p className="text-xs text-gray-500 mb-1">
@@ -499,9 +498,6 @@ const Products = () => {
                           <span className="flex items-center gap-1">
                             <FaMapMarkerAlt className="text-teal-500" />
                             {product.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <FaEye /> {product.views}
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-2">
@@ -634,10 +630,6 @@ const Products = () => {
                               {new Date(
                                 product.datePosted,
                               ).toLocaleDateString()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <FaEye className="text-gray-400" />
-                              {product.views}
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
