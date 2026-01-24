@@ -7,7 +7,6 @@ import { API_ENDPOINTS } from "../config/api";
 import {
   FaArrowLeft,
   FaHeart,
-  FaShare,
   FaMapMarkerAlt,
   FaClock,
   FaEye,
@@ -236,15 +235,14 @@ const ProductDetails = () => {
               <span className="absolute top-4 right-4 bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                 {product.condition}
               </span>
-              {product.condition === "New" &&
-                product.rating >= 0 && (
-                  <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
-                    <FaStar className="text-yellow-400" />
-                    <span className="text-sm font-bold text-gray-800">
-                      {product.rating}
-                    </span>
-                  </div>
-                )}
+              {product.condition === "New" && product.rating >= 0 && (
+                <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
+                  <FaStar className="text-yellow-400" />
+                  <span className="text-sm font-bold text-gray-800">
+                    {product.rating}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Thumbnail Images */}
@@ -315,9 +313,6 @@ const ProductDetails = () => {
                       } transition-colors`}
                     />
                   </button>
-                  <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors">
-                    <FaShare className="text-gray-600 hover:text-blue-500" />
-                  </button>
                 </div>
               </div>
 
@@ -344,14 +339,6 @@ const ProductDetails = () => {
                   Posted {new Date(product.datePosted).toLocaleDateString()}
                 </span>
               </div>
-
-              {/* Negotiable Badge */}
-              {product.isNegotiable && (
-                <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg mb-6">
-                  <FaCheckCircle />
-                  <span className="font-semibold">Price Negotiable</span>
-                </div>
-              )}
             </div>
 
             {/* Description */}

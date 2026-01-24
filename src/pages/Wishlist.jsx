@@ -136,16 +136,14 @@ const Wishlist = () => {
                       <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {product.condition}
                       </span>
-                      {product.condition === "New" &&
-                        product.rating &&
-                        product.rating >= 0 && (
-                          <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
-                            <FaStar className="text-yellow-400 text-xs" />
-                            <span className="text-xs font-semibold text-gray-800">
-                              {product.rating}
-                            </span>
-                          </div>
-                        )}
+                      {product.condition === "New" && product.rating >= 0 && (
+                        <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <FaStar className="text-yellow-400 text-xs" />
+                          <span className="text-xs font-semibold text-gray-800">
+                            {product.rating}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </Link>
                   <div className="p-4">

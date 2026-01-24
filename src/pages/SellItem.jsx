@@ -412,7 +412,7 @@ const SellItem = () => {
                 >
                   {categories.map((cat) => (
                     <option key={cat.name} value={cat.name}>
-                      {cat.name} ({cat.count})
+                      {cat.name}
                     </option>
                   ))}
                 </select>

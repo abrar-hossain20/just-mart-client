@@ -2,9 +2,11 @@ import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
+import { WishlistContext } from "../context/WishlistContext";
 import {
   FaUserCircle,
   FaShoppingCart,
+  FaHeart,
   FaSearch,
   FaBars,
   FaTimes,
@@ -13,6 +15,7 @@ import {
 const Navbar = () => {
   const { user, signoutUserFunc } = useContext(AuthContext);
   const { getCartItemsCount } = useContext(CartContext);
+  const { getWishlistItemsCount } = useContext(WishlistContext);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,6 +89,19 @@ const Navbar = () => {
               Sell Item
             </Link>
 
+            {/* Wishlist Icon */}
+            <Link
+              to="/wishlist"
+              className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200"
+            >
+              <FaHeart size={22} />
+              {getWishlistItemsCount() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-linear-to-r from-pink-500 to-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {getWishlistItemsCount()}
+                </span>
+              )}
+            </Link>
+
             {/* Cart Icon */}
             <Link
               to="/cart"
@@ -150,13 +166,6 @@ const Navbar = () => {
                       className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
                     >
                       My Orders
-                    </Link>
-                    <Link
-                      to="/wishlist"
-                      onClick={() => setShowDropdown(false)}
-                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
-                    >
-                      My Wishlist
                     </Link>
                     <Link
                       to="/profile"
@@ -269,13 +278,6 @@ const Navbar = () => {
                   className="block text-gray-700 hover:text-blue-600 transition-colors duration-200"
                 >
                   My Orders
-                </Link>
-                <Link
-                  to="/wishlist"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block text-gray-700 hover:text-blue-600 transition-colors duration-200"
-                >
-                  My Wishlist
                 </Link>
                 <button
                   onClick={() => {

@@ -370,7 +370,6 @@ const Products = () => {
                   <option value="newest">Newest First</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
-                  <option value="popular">Most Popular</option>
                   <option value="rating">Highest Rated</option>
                 </select>
 
