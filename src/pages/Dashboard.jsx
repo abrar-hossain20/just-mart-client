@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [myProducts, setMyProducts] = useState([]);
   const [sellerOrders, setSellerOrders] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
 
   const handleDeleteProduct = async (productId) => {
     if (!window.confirm("Are you sure you want to delete this product?")) {
@@ -76,6 +77,9 @@ const Dashboard = () => {
           (product) => product.sellerEmail === user?.email,
         );
         setMyProducts(userProducts);
+
+        // Set user's purchase orders
+        setMyOrders(orders);
 
         // Mock seller orders - orders received for products the seller has listed
         // In production, this would come from a real API filtering by seller ID
@@ -226,19 +230,244 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Orders Section */}
+          {/* Main Content Area */}
           <div className="lg:col-span-2">
+            {/* My Orders Section */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">My Orders</h2>
+                {myOrders.length > 0 && (
+                  <Link
+                    to="/orders"
+                    className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors text-sm"
+                  >
+                    View All Orders →
+                  </Link>
+                )}
+              </div>
+
+              {myOrders.length === 0 ? (
+                <div className="text-center py-12">
+                  <FaShoppingBag className="text-6xl text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    No orders yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Your purchase orders will appear here
+                  </p>
+                  <Link
+                    to="/products"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
+                  >
+                    <FaShoppingBag /> Browse Products
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {myOrders.slice(0, 3).map((order) => (
+                    <div
+                      key={order._id || order.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-sm text-gray-500">Order ID</p>
+                          <p className="font-bold text-gray-800">
+                            {order._id || order.id}
+                          </p>
+                        </div>
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            order.status === "Delivered"
+                              ? "bg-green-100 text-green-700"
+                              : order.status === "Shipped"
+                                ? "bg-blue-100 text-blue-700"
+                                : order.status === "Processing"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {order.status === "Delivered" && (
+                            <FaCheckCircle className="inline mr-1" />
+                          )}
+                          {order.status === "Shipped" && (
+                            <FaShippingFast className="inline mr-1" />
+                          )}
+                          {order.status === "Processing" && (
+                            <FaClock className="inline mr-1" />
+                          )}
+                          {order.status}
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <p className="text-sm text-gray-600 mb-2">
+                          {order.items?.length || 0} item(s)
+                        </p>
+                        <p className="text-lg font-bold text-teal-600">
+                          ৳{(order.total || 0).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between items-center text-sm">
+                        <p className="text-gray-500">
+                          {order.createdAt
+                            ? new Date(order.createdAt).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                        <Link
+                          to="/orders"
+                          className="text-teal-600 hover:text-teal-700 font-semibold"
+                        >
+                          View Details →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* My Products Section */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  My Products
+                </h2>
+                {myProducts.length > 0 && (
+                  <Link
+                    to="/my-products"
+                    className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors text-sm"
+                  >
+                    View All Products →
+                  </Link>
+                )}
+              </div>
+
+              {myProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <FaBox className="text-6xl text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                    No products yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Start selling by adding your first product
+                  </p>
+                  <Link
+                    to="/sell"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
+                  >
+                    <FaPlus /> Add Your First Product
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {myProducts.slice(0, 3).map((product) => {
+                    const imageUrl =
+                      product.images?.[0] ||
+                      product.image ||
+                      product.imageUrl ||
+                      "https://via.placeholder.com/400x400?text=No+Image";
+
+                    return (
+                      <div
+                        key={product._id || product.id}
+                        className="flex flex-col sm:flex-row gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={product.title}
+                          className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg"
+                          onError={(e) => {
+                            e.target.src =
+                              "https://via.placeholder.com/400x400?text=No+Image";
+                          }}
+                        />
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2">
+                                {product.title}
+                              </h3>
+                              <p className="text-sm text-gray-500 mb-2">
+                                {product.category}
+                              </p>
+                              <div className="flex items-center gap-3 text-sm flex-wrap">
+                                {product.condition && (
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      product.condition === "New"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-blue-100 text-blue-700"
+                                    }`}
+                                  >
+                                    {product.condition}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-left sm:text-right">
+                              <p className="text-xl font-bold text-teal-600">
+                                ৳{product.price?.toLocaleString()}
+                              </p>
+                              {product.originalPrice &&
+                                product.originalPrice > product.price && (
+                                  <p className="text-xs text-gray-400 line-through">
+                                    ৳{product.originalPrice.toLocaleString()}
+                                  </p>
+                                )}
+                              {product.discount && (
+                                <p className="text-xs text-green-600 font-semibold">
+                                  {product.discount}% OFF
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/sell?edit=${product._id || product.id}`,
+                                )
+                              }
+                              className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1"
+                            >
+                              <FaEdit /> Edit
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDeleteProduct(product._id || product.id)
+                              }
+                              className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1"
+                            >
+                              <FaTrash /> Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Recent Orders Received Section */}
+            <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                   Recent Orders Received
                 </h2>
-                <span className="text-sm text-gray-500">
-                  {sellerOrders.length} total orders
-                </span>
+                {sellerOrders.length > 0 && (
+                  <Link
+                    to="/orders"
+                    className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors text-sm"
+                  >
+                    View Seller Orders →
+                  </Link>
+                )}
               </div>
 
-              {sellerOrders.length === 0 ? (
+              {myOrders.length === 0 ? (
                 <div className="text-center py-12">
                   <FaShoppingBag className="text-6xl text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -327,140 +556,6 @@ const Dashboard = () => {
                       </div>
                     </div>
                   ))}
-                  {sellerOrders.length > 3 && (
-                    <button className="block text-center w-full py-3 text-teal-600 hover:text-teal-700 font-semibold">
-                      View All Orders →
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* My Products Section */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  My Products
-                </h2>
-                <Link
-                  to="/sell"
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors flex items-center gap-2"
-                >
-                  <FaPlus /> Add Product
-                </Link>
-              </div>
-
-              {myProducts.length === 0 ? (
-                <div className="text-center py-12">
-                  <FaBox className="text-6xl text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                    No products yet
-                  </h3>
-                  <p className="text-gray-500 mb-6">
-                    Start selling by adding your first product
-                  </p>
-                  <Link
-                    to="/sell"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
-                  >
-                    <FaPlus /> Add Your First Product
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {myProducts.slice(0, 5).map((product) => {
-                    const imageUrl =
-                      product.images?.[0] ||
-                      product.image ||
-                      product.imageUrl ||
-                      "https://via.placeholder.com/400x400?text=No+Image";
-
-                    return (
-                      <div
-                        key={product._id || product.id}
-                        className="flex flex-col sm:flex-row gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
-                      >
-                        <img
-                          src={imageUrl}
-                          alt={product.title}
-                          className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg"
-                          onError={(e) => {
-                            e.target.src =
-                              "https://via.placeholder.com/400x400?text=No+Image";
-                          }}
-                        />
-                        <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2">
-                                {product.title}
-                              </h3>
-                              <p className="text-sm text-gray-500 mb-2">
-                                {product.category}
-                              </p>
-                              <div className="flex items-center gap-3 text-sm flex-wrap">
-                                {product.condition && (
-                                  <span
-                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                      product.condition === "New"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-blue-100 text-blue-700"
-                                    }`}
-                                  >
-                                    {product.condition}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-left sm:text-right">
-                              <p className="text-xl font-bold text-teal-600">
-                                ৳{product.price?.toLocaleString()}
-                              </p>
-                              {product.originalPrice &&
-                                product.originalPrice > product.price && (
-                                  <p className="text-xs text-gray-400 line-through">
-                                    ৳{product.originalPrice.toLocaleString()}
-                                  </p>
-                                )}
-                              {product.discount && (
-                                <p className="text-xs text-green-600 font-semibold">
-                                  {product.discount}% OFF
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex gap-2 mt-3">
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/sell?edit=${product._id || product.id}`,
-                                )
-                              }
-                              className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1"
-                            >
-                              <FaEdit /> Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDeleteProduct(product._id || product.id)
-                              }
-                              className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1"
-                            >
-                              <FaTrash /> Delete
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {myProducts.length > 5 && (
-                    <Link
-                      to="/my-products"
-                      className="block text-center py-3 text-teal-600 hover:text-teal-700 font-semibold"
-                    >
-                      View All {myProducts.length} Products →
-                    </Link>
-                  )}
                 </div>
               )}
             </div>
