@@ -17,9 +17,6 @@ const MyProducts = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [myProducts, setMyProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [filterCondition, setFilterCondition] = useState("all");
 
   useEffect(() => {
     if (!user) {
@@ -71,19 +68,6 @@ const MyProducts = () => {
     }
   };
 
-  const filteredProducts = myProducts.filter((product) => {
-    const matchesSearch = product.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      filterCategory === "all" || product.category === filterCategory;
-    const matchesCondition =
-      filterCondition === "all" || product.condition === filterCondition;
-    return matchesSearch && matchesCategory && matchesCondition;
-  });
-
-  const categories = [...new Set(myProducts.map((p) => p.category))];
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -124,73 +108,15 @@ const MyProducts = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Search Products
-              </label>
-              <input
-                type="text"
-                placeholder="Search by title..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-
-            {/* Category Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Condition Filter */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Condition
-              </label>
-              <select
-                value={filterCondition}
-                onChange={(e) => setFilterCondition(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              >
-                <option value="all">All Conditions</option>
-                <option value="New">New</option>
-                <option value="Used">Used</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* Products List */}
-        {filteredProducts.length === 0 ? (
+        {myProducts.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
             <FaBox className="text-6xl text-gray-300 mx-auto mb-4" />
             <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-              {myProducts.length === 0
-                ? "No products yet"
-                : "No products match your filters"}
+              No products yet
             </h3>
             <p className="text-gray-500 mb-6">
-              {myProducts.length === 0
-                ? "Start selling by adding your first product"
-                : "Try adjusting your search or filters"}
+              Start selling by adding your first product
             </p>
             {myProducts.length === 0 && (
               <Link
@@ -205,11 +131,11 @@ const MyProducts = () => {
           <div className="bg-white rounded-lg shadow-md">
             <div className="p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                {filteredProducts.length} Product
-                {filteredProducts.length !== 1 ? "s" : ""} Found
+                {myProducts.length} Product
+                {myProducts.length !== 1 ? "s" : ""} Found
               </h2>
               <div className="space-y-4">
-                {filteredProducts.map((product) => {
+                {myProducts.map((product) => {
                   const imageUrl =
                     product.images?.[0] ||
                     product.image ||

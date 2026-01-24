@@ -739,6 +739,22 @@
       "count": 4,
       "color": "orange",
       "description": "Sports equipment, bikes, and fitness gear"
+    },
+    {
+      "id": 7,
+      "name": "Vehicles",
+      "icon": "🚗",
+      "count": 0,
+      "color": "indigo",
+      "description": "Bikes, scooters, and other vehicles"
+    },
+    {
+      "id": 8,
+      "name": "Others",
+      "icon": "📦",
+      "count": 0,
+      "color": "gray",
+      "description": "Miscellaneous items and supplies"
     }
   ],
   "testimonials": [

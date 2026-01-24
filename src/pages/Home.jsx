@@ -13,6 +13,8 @@ import {
   FaCouch,
   FaGamepad,
   FaBicycle,
+  FaCar,
+  FaList,
   FaArrowRight,
   FaStar,
   FaCheckCircle,
@@ -29,19 +31,22 @@ const Home = () => {
     // Fetch data from backend and local file
     const fetchData = async () => {
       try {
-        const [productsRes, localDataRes, statsRes] = await Promise.all([
-          fetch(API_ENDPOINTS.PRODUCTS),
-          fetch("/Data.json"),
-          fetch(API_ENDPOINTS.STATS),
-        ]);
+        const [productsRes, categoriesRes, localDataRes, statsRes] =
+          await Promise.all([
+            fetch(API_ENDPOINTS.PRODUCTS),
+            fetch(API_ENDPOINTS.CATEGORIES),
+            fetch("/Data.json"),
+            fetch(API_ENDPOINTS.STATS),
+          ]);
 
         const products = await productsRes.json();
+        const categories = await categoriesRes.json();
         const localData = await localDataRes.json();
         const stats = await statsRes.json();
 
         setData({
           products,
-          categories: localData.categories || [],
+          categories: categories || [],
           testimonials: localData.testimonials || [],
           stats,
         });
@@ -102,7 +107,10 @@ const Home = () => {
     Fashion: <FaTshirt />,
     Furniture: <FaCouch />,
     Gaming: <FaGamepad />,
+    "Sports & Fitness": <FaBicycle />,
     Sports: <FaBicycle />,
+    Vehicles: <FaCar />,
+    Others: <FaList />,
   };
 
   const howItWorks = [
@@ -248,7 +256,7 @@ const Home = () => {
                   {category.name}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {category.count.toLocaleString()} items
+                  {category.count?.toLocaleString() || 0} items
                 </p>
               </button>
             ))}
