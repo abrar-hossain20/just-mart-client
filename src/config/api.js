@@ -24,8 +24,10 @@ export const API_ENDPOINTS = {
     `${API_BASE_URL}/api/wishlist/${email}/${productId}`,
 
   // Orders
-  ORDERS: (email) => `${API_BASE_URL}/api/orders/${email}`,
-  CREATE_ORDER: `${API_BASE_URL}/api/orders`,
+  ORDERS: `${API_BASE_URL}/api/orders`,
+  ORDERS_BY_EMAIL: (email) => `${API_BASE_URL}/api/orders/${email}`,
+  ORDERS_RECEIVED: (email) => `${API_BASE_URL}/api/orders/received/${email}`,
+  ORDER_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/status`,
 
   // Stats
   STATS: `${API_BASE_URL}/api/stats`,

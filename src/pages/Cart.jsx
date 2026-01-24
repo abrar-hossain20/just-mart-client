@@ -1,17 +1,78 @@
-import React, { useContext } from "react";
-import { Link } from "react-router";
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
+import { AuthContext } from "../context/AuthContext";
+import { API_ENDPOINTS } from "../config/api";
 import {
   FaTrash,
   FaMinus,
   FaPlus,
   FaShoppingBag,
   FaArrowLeft,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
     useContext(CartContext);
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      navigate("/signin", { state: { from: "/cart" } });
+      return;
+    }
+
+    setIsPlacingOrder(true);
+
+    try {
+      const orderData = {
+        buyerEmail: user.email,
+        buyerName: user.displayName || user.email,
+        items: cart.map((item) => ({
+          productId: item._id,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.images?.[0] || item.image,
+          category: item.category,
+          condition: item.condition,
+          sellerEmail: item.sellerEmail,
+          sellerName: item.sellerName,
+        })),
+        totalAmount: getCartTotal(),
+        deliveryFee: 0,
+        status: "Pending",
+        paymentStatus: "Cash on Delivery",
+      };
+
+      const response = await fetch(API_ENDPOINTS.ORDERS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to place order");
+      }
+
+      const result = await response.json();
+      setOrderId(result.orderId);
+      clearCart();
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Failed to place order. Please try again.");
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -174,8 +235,12 @@ const Cart = () => {
                 </div>
               </div>
 
-              <button className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 mb-3">
-                Proceed to Checkout
+              <button
+                onClick={handlePlaceOrder}
+                disabled={isPlacingOrder}
+                className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPlacingOrder ? "Placing Order..." : "Place Order"}
               </button>
 
               <Link
@@ -207,6 +272,45 @@ const Cart = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <FaCheckCircle className="text-green-500 text-4xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Order Placed Successfully!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Your order has been placed. The seller will contact you soon.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    navigate("/orders");
+                  }}
+                  className="w-full py-3 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
+                >
+                  View My Orders
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    navigate("/products");
+                  }}
+                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all"
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

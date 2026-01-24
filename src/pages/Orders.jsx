@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
+import { API_ENDPOINTS } from "../config/api";
 import {
   FaBox,
   FaShippingFast,
@@ -37,169 +38,58 @@ const Orders = () => {
       return;
     }
 
-    // Mock orders data - In production, this would come from an API
-    const mockOrders = [
-      {
-        id: "ORD-2025-001",
-        date: "2025-11-15",
-        status: "Delivered",
-        total: 45999,
-        items: [
-          {
-            id: 1,
-            title: "Wireless Bluetooth Headphones",
-            price: 2999,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300",
-          },
-          {
-            id: 2,
-            title: "MacBook Pro 2023",
-            price: 43000,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300",
-          },
-        ],
-        seller: {
-          name: "John Doe",
-          phone: "+880 1711-123456",
-          email: "john@example.com",
-          avatar: "https://i.pravatar.cc/150?img=1",
-        },
-        deliveryAddress: "Room 302, M M Hall, JUST Campus",
-        estimatedDelivery: "2025-11-18",
-        trackingSteps: [
-          {
-            status: "Order Placed",
-            date: "2025-11-15 10:30 AM",
-            completed: true,
-          },
-          { status: "Confirmed", date: "2025-11-15 02:45 PM", completed: true },
-          { status: "Shipped", date: "2025-11-16 09:00 AM", completed: true },
-          { status: "Delivered", date: "2025-11-17 04:20 PM", completed: true },
-        ],
-      },
-      {
-        id: "ORD-2025-002",
-        date: "2025-11-16",
-        status: "Shipped",
-        total: 1250,
-        items: [
-          {
-            id: 5,
-            title: "Programming Books Bundle",
-            price: 1250,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300",
-          },
-        ],
-        seller: {
-          name: "Sarah Ahmed",
-          phone: "+880 1812-654321",
-          email: "sarah@example.com",
-          avatar: "https://i.pravatar.cc/150?img=5",
-        },
-        deliveryAddress: "Room 205, SMR Hall, JUST Campus",
-        estimatedDelivery: "2025-11-19",
-        trackingSteps: [
-          {
-            status: "Order Placed",
-            date: "2025-11-16 11:15 AM",
-            completed: true,
-          },
-          { status: "Confirmed", date: "2025-11-16 03:30 PM", completed: true },
-          { status: "Shipped", date: "2025-11-17 10:00 AM", completed: true },
-          { status: "Delivered", date: "Expected by Nov 19", completed: false },
-        ],
-      },
-      {
-        id: "ORD-2025-003",
-        date: "2025-11-17",
-        status: "Processing",
-        total: 8500,
-        items: [
-          {
-            id: 8,
-            title: "Gaming Mouse RGB",
-            price: 3500,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1527814050087-3793815479db?w=300",
-          },
-          {
-            id: 9,
-            title: "Mechanical Keyboard",
-            price: 5000,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300",
-          },
-        ],
-        seller: {
-          name: "Karim Rahman",
-          phone: "+880 1912-789456",
-          email: "karim@example.com",
-          avatar: "https://i.pravatar.cc/150?img=3",
-        },
-        deliveryAddress: "Ambottola, Jashore",
-        estimatedDelivery: "2025-11-22",
-        trackingSteps: [
-          {
-            status: "Order Placed",
-            date: "2025-11-17 02:00 PM",
-            completed: true,
-          },
-          { status: "Confirmed", date: "2025-11-17 05:15 PM", completed: true },
-          {
-            status: "Shipped",
-            date: "Preparing for shipment",
-            completed: false,
-          },
-          { status: "Delivered", date: "Expected by Nov 22", completed: false },
-        ],
-      },
-      {
-        id: "ORD-2025-004",
-        date: "2025-11-18",
-        status: "Cancelled",
-        total: 2500,
-        items: [
-          {
-            id: 12,
-            title: "Vintage Camera",
-            price: 2500,
-            quantity: 1,
-            image:
-              "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=300",
-          },
-        ],
-        seller: {
-          name: "Mike Johnson",
-          phone: "+880 1611-456789",
-          email: "mike@example.com",
-          avatar: "https://i.pravatar.cc/150?img=7",
-        },
-        deliveryAddress: "Room 101, Taramon Bibi Hall, JUST Campus",
-        estimatedDelivery: "N/A",
-        trackingSteps: [
-          {
-            status: "Order Placed",
-            date: "2025-11-18 09:30 AM",
-            completed: true,
-          },
-          { status: "Cancelled", date: "2025-11-18 11:00 AM", completed: true },
-        ],
-        cancellationReason: "Product no longer available",
-      },
-    ];
-
-    setOrders(mockOrders);
-    setFilteredOrders(mockOrders);
-    setLoading(false);
+    fetchOrders();
   }, [user, navigate]);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(API_ENDPOINTS.ORDERS_RECEIVED(user.email));
+      const data = await response.json();
+
+      setOrders(data);
+      setFilteredOrders(data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      setOrders([]);
+      setFilteredOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDER_STATUS(orderId), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      // Update local state
+      setOrders(
+        orders.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order,
+        ),
+      );
+      setFilteredOrders(
+        filteredOrders.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order,
+        ),
+      );
+
+      alert("Order status updated successfully!");
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert("Failed to update order status. Please try again.");
+    }
+  };
 
   useEffect(() => {
     let filtered = [...orders];
@@ -213,10 +103,10 @@ const Orders = () => {
     if (searchQuery) {
       filtered = filtered.filter(
         (order) =>
-          order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
           order.items.some((item) =>
-            item.title.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
 
@@ -230,6 +120,7 @@ const Orders = () => {
       case "Shipped":
         return "bg-blue-100 text-blue-700 border-blue-300";
       case "Processing":
+      case "Pending":
         return "bg-yellow-100 text-yellow-700 border-yellow-300";
       case "Cancelled":
         return "bg-red-100 text-red-700 border-red-300";
@@ -287,9 +178,9 @@ const Orders = () => {
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2">My Orders</h1>
+              <h1 className="text-4xl font-bold mb-2">Orders Received</h1>
               <p className="text-teal-100 text-lg">
-                Track and manage your purchases
+                Manage orders from buyers who purchased your products
               </p>
             </div>
             <div className="hidden md:block text-right">
@@ -323,9 +214,10 @@ const Orders = () => {
               className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option>All</option>
-              <option>Delivered</option>
-              <option>Shipped</option>
+              <option>Pending</option>
               <option>Processing</option>
+              <option>Shipped</option>
+              <option>Delivered</option>
               <option>Cancelled</option>
             </select>
           </div>
@@ -341,20 +233,20 @@ const Orders = () => {
             <p className="text-gray-500 mb-6">
               {searchQuery || statusFilter !== "All"
                 ? "Try adjusting your search or filters"
-                : "You haven't placed any orders yet"}
+                : "You haven't received any orders yet"}
             </p>
             <Link
-              to="/products"
+              to="/sell"
               className="inline-block px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
             >
-              Start Shopping
+              List a Product
             </Link>
           </div>
         ) : (
           <div className="space-y-6">
             {filteredOrders.map((order) => (
               <div
-                key={order.id}
+                key={order._id}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300"
               >
                 {/* Order Header */}
@@ -363,30 +255,35 @@ const Orders = () => {
                     <div className="flex items-center gap-4 flex-wrap">
                       <div>
                         <p className="text-sm text-gray-500">Order ID</p>
-                        <p className="font-bold text-gray-800">{order.id}</p>
+                        <p className="font-bold text-gray-800">
+                          {order._id.slice(-8).toUpperCase()}
+                        </p>
                       </div>
                       <div className="hidden sm:block w-px h-10 bg-gray-300"></div>
                       <div>
                         <p className="text-sm text-gray-500">Order Date</p>
                         <p className="font-semibold text-gray-800">
-                          {new Date(order.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {new Date(order.orderDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
                         </p>
                       </div>
                       <div className="hidden sm:block w-px h-10 bg-gray-300"></div>
                       <div>
                         <p className="text-sm text-gray-500">Total Amount</p>
                         <p className="font-bold text-teal-600 text-lg">
-                          ৳{order.total.toLocaleString()}
+                          ৳{order.totalAmount.toLocaleString()}
                         </p>
                       </div>
                     </div>
                     <div
                       className={`px-4 py-2 rounded-full border-2 font-semibold text-sm flex items-center gap-2 ${getStatusColor(
-                        order.status
+                        order.status,
                       )}`}
                     >
                       {getStatusIcon(order.status)}
@@ -398,10 +295,10 @@ const Orders = () => {
                 {/* Order Items */}
                 <div className="px-6 py-4">
                   <div className="space-y-4">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex gap-4">
+                    {order.items.map((item, index) => (
+                      <div key={index} className="flex gap-4">
                         <img
-                          src={item.image}
+                          src={item.image || "https://via.placeholder.com/100"}
                           alt={item.title}
                           className="w-20 h-20 object-cover rounded-lg"
                         />
@@ -420,23 +317,30 @@ const Orders = () => {
                     ))}
                   </div>
 
-                  {/* Delivery Info */}
-                  {order.status !== "Cancelled" && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                  {/* Buyer Information */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h4 className="font-semibold text-gray-800 mb-3">
+                      Buyer Information
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FaMapMarkerAlt className="text-teal-500" />
-                        <span>Delivering to: {order.deliveryAddress}</span>
+                        <FaUserCircle className="text-blue-500" />
+                        <span>{order.buyerName}</span>
                       </div>
-                      {order.status !== "Delivered" && (
-                        <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                          <FaClock className="text-blue-500" />
-                          <span>
-                            Estimated Delivery: {order.estimatedDelivery}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <FaEnvelope className="text-teal-500" />
+                        <span>{order.buyerEmail}</span>
+                      </div>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Payment Status */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <FaCheckCircle className="text-green-500" />
+                      <span>Payment: {order.paymentStatus}</span>
+                    </div>
+                  </div>
 
                   {/* Cancellation Reason */}
                   {order.status === "Cancelled" && order.cancellationReason && (
@@ -454,24 +358,72 @@ const Orders = () => {
 
                 {/* Order Actions */}
                 <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => openOrderDetails(order)}
-                      className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors flex items-center gap-2"
-                    >
-                      <FaEye /> View Details
-                    </button>
-                    {order.status === "Delivered" && (
-                      <button className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200 transition-colors flex items-center gap-2">
-                        <FaStar /> Rate & Review
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">
+                        Update Order Status:
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      {order.status !== "Pending" && (
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(order._id, "Pending")
+                          }
+                          className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200 transition-colors flex items-center gap-2"
+                        >
+                          <FaClock /> Mark as Pending
+                        </button>
+                      )}
+                      {order.status !== "Processing" &&
+                        order.status !== "Cancelled" && (
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(order._id, "Processing")
+                            }
+                            className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
+                          >
+                            <FaBox /> Mark as Processing
+                          </button>
+                        )}
+                      {order.status !== "Shipped" &&
+                        order.status !== "Cancelled" && (
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(order._id, "Shipped")
+                            }
+                            className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-colors flex items-center gap-2"
+                          >
+                            <FaShippingFast /> Mark as Shipped
+                          </button>
+                        )}
+                      {order.status !== "Delivered" &&
+                        order.status !== "Cancelled" && (
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(order._id, "Delivered")
+                            }
+                            className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition-colors flex items-center gap-2"
+                          >
+                            <FaCheckCircle /> Mark as Delivered
+                          </button>
+                        )}
+                      {order.status !== "Cancelled" && (
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(order._id, "Cancelled")
+                          }
+                          className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2"
+                        >
+                          <FaTimes /> Cancel Order
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-2 pt-3 border-t border-gray-200">
+                      <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2">
+                        <FaPhone /> Contact Buyer
                       </button>
-                    )}
-                    <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2">
-                      <FaDownload /> Download Invoice
-                    </button>
-                    <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2">
-                      <FaPhone /> Contact Seller
-                    </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -515,7 +467,7 @@ const Orders = () => {
                     <p className="text-sm text-gray-500 mb-1">Status</p>
                     <div
                       className={`inline-flex px-3 py-1 rounded-full border font-semibold text-sm ${getStatusColor(
-                        selectedOrder.status
+                        selectedOrder.status,
                       )}`}
                     >
                       {getStatusIcon(selectedOrder.status)}

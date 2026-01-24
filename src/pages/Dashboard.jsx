@@ -62,15 +62,20 @@ const Dashboard = () => {
     // Fetch data from backend API
     const fetchData = async () => {
       try {
-        const [productsRes, ordersRes] = await Promise.all([
-          fetch(API_ENDPOINTS.PRODUCTS),
-          user?.email
-            ? fetch(API_ENDPOINTS.ORDERS(user.email))
-            : Promise.resolve({ json: () => [] }),
-        ]);
+        const [productsRes, buyerOrdersRes, sellerOrdersRes] =
+          await Promise.all([
+            fetch(API_ENDPOINTS.PRODUCTS),
+            user?.email
+              ? fetch(API_ENDPOINTS.ORDERS_BY_EMAIL(user.email))
+              : Promise.resolve({ json: () => [] }),
+            user?.email
+              ? fetch(API_ENDPOINTS.ORDERS_RECEIVED(user.email))
+              : Promise.resolve({ json: () => [] }),
+          ]);
 
         const products = await productsRes.json();
-        const orders = user?.email ? await ordersRes.json() : [];
+        const buyerOrders = user?.email ? await buyerOrdersRes.json() : [];
+        const sellerOrders = user?.email ? await sellerOrdersRes.json() : [];
 
         // Filter products by current user's email
         const userProducts = products.filter(
@@ -78,50 +83,11 @@ const Dashboard = () => {
         );
         setMyProducts(userProducts);
 
-        // Set user's purchase orders
-        setMyOrders(orders);
+        // Set user's purchase orders (as buyer)
+        setMyOrders(buyerOrders);
 
-        // Mock seller orders - orders received for products the seller has listed
-        // In production, this would come from a real API filtering by seller ID
-        const mockSellerOrders = products.slice(0, 3).map((product, idx) => ({
-          id: `SO-2025-${String(idx + 1).padStart(3, "0")}`,
-          orderDate: new Date(Date.now() - idx * 86400000)
-            .toISOString()
-            .split("T")[0],
-          status: idx === 0 ? "Pending" : idx === 1 ? "Shipped" : "Delivered",
-          buyer: {
-            name:
-              idx === 0
-                ? "Ahmed Rahman"
-                : idx === 1
-                  ? "Fatima Khan"
-                  : "Kamal Hossain",
-            phone:
-              idx === 0
-                ? "+880 1711-234567"
-                : idx === 1
-                  ? "+880 1812-345678"
-                  : "+880 1912-456789",
-            email:
-              idx === 0
-                ? "ahmed@student.edu"
-                : idx === 1
-                  ? "fatima@student.edu"
-                  : "kamal@student.edu",
-            avatar: `https://i.pravatar.cc/150?img=${12 + idx * 4}`,
-          },
-          product: product,
-          quantity: 1,
-          totalAmount: product?.price || 0,
-          deliveryAddress:
-            idx === 0
-              ? "Room 305, Hall 4, DU Campus"
-              : idx === 1
-                ? "House 12, Road 5, Banani"
-                : "Room 201, Hall 2, BUET Campus",
-        }));
-
-        setSellerOrders(mockSellerOrders);
+        // Set orders received (as seller)
+        setSellerOrders(sellerOrders);
         setLoading(false);
       } catch (error) {
         console.error("Error loading data:", error);
@@ -236,14 +202,7 @@ const Dashboard = () => {
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">My Orders</h2>
-                {myOrders.length > 0 && (
-                  <Link
-                    to="/orders"
-                    className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors text-sm"
-                  >
-                    View All Orders →
-                  </Link>
-                )}
+                <p className="text-sm text-gray-500">(As Buyer)</p>
               </div>
 
               {myOrders.length === 0 ? (
@@ -266,14 +225,14 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   {myOrders.slice(0, 3).map((order) => (
                     <div
-                      key={order._id || order.id}
+                      key={order._id}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <p className="text-sm text-gray-500">Order ID</p>
                           <p className="font-bold text-gray-800">
-                            {order._id || order.id}
+                            {order._id.slice(-8).toUpperCase()}
                           </p>
                         </div>
                         <div
@@ -282,7 +241,8 @@ const Dashboard = () => {
                               ? "bg-green-100 text-green-700"
                               : order.status === "Shipped"
                                 ? "bg-blue-100 text-blue-700"
-                                : order.status === "Processing"
+                                : order.status === "Processing" ||
+                                    order.status === "Pending"
                                   ? "bg-yellow-100 text-yellow-700"
                                   : "bg-red-100 text-red-700"
                           }`}
@@ -293,7 +253,8 @@ const Dashboard = () => {
                           {order.status === "Shipped" && (
                             <FaShippingFast className="inline mr-1" />
                           )}
-                          {order.status === "Processing" && (
+                          {(order.status === "Processing" ||
+                            order.status === "Pending") && (
                             <FaClock className="inline mr-1" />
                           )}
                           {order.status}
@@ -305,14 +266,14 @@ const Dashboard = () => {
                           {order.items?.length || 0} item(s)
                         </p>
                         <p className="text-lg font-bold text-teal-600">
-                          ৳{(order.total || 0).toLocaleString()}
+                          ৳{(order.totalAmount || 0).toLocaleString()}
                         </p>
                       </div>
 
                       <div className="flex justify-between items-center text-sm">
                         <p className="text-gray-500">
-                          {order.createdAt
-                            ? new Date(order.createdAt).toLocaleDateString()
+                          {order.orderDate
+                            ? new Date(order.orderDate).toLocaleDateString()
                             : "N/A"}
                         </p>
                         <Link
@@ -479,83 +440,98 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {sellerOrders.slice(0, 3).map((order) => (
-                    <div
-                      key={order.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Order ID</p>
-                          <p className="font-bold text-gray-800">{order.id}</p>
-                        </div>
-                        <div
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            order.status === "Delivered"
-                              ? "bg-green-100 text-green-700"
-                              : order.status === "Shipped"
-                                ? "bg-blue-100 text-blue-700"
-                                : order.status === "Pending"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {order.status === "Delivered" && (
-                            <FaCheckCircle className="inline mr-1" />
-                          )}
-                          {order.status === "Shipped" && (
-                            <FaShippingFast className="inline mr-1" />
-                          )}
-                          {order.status === "Pending" && (
-                            <FaClock className="inline mr-1" />
-                          )}
-                          {order.status}
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <img
-                          src={order.product?.image}
-                          alt={order.product?.title}
-                          className="w-20 h-20 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-800 mb-1">
-                            {order.product?.title}
-                          </h3>
-                          <p className="text-sm text-gray-500 mb-2">
-                            Quantity: {order.quantity}
-                          </p>
-                          <p className="text-lg font-bold text-teal-600">
-                            ৳{order.totalAmount.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={order.buyer.avatar}
-                              alt={order.buyer.name}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <div>
-                              <p className="text-sm font-semibold text-gray-800">
-                                {order.buyer.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(order.orderDate).toLocaleDateString()}
-                              </p>
-                            </div>
+                  {sellerOrders.slice(0, 3).map((order) => {
+                    const firstItem = order.items?.[0] || {};
+                    return (
+                      <div
+                        key={order._id}
+                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="text-sm text-gray-500">Order ID</p>
+                            <p className="font-bold text-gray-800">
+                              {order._id?.slice(-8).toUpperCase()}
+                            </p>
                           </div>
-                          <button className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1">
-                            <FaPhone /> Contact
-                          </button>
+                          <div
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              order.status === "Delivered"
+                                ? "bg-green-100 text-green-700"
+                                : order.status === "Shipped"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : order.status === "Pending" ||
+                                      order.status === "Processing"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {order.status === "Delivered" && (
+                              <FaCheckCircle className="inline mr-1" />
+                            )}
+                            {order.status === "Shipped" && (
+                              <FaShippingFast className="inline mr-1" />
+                            )}
+                            {(order.status === "Pending" ||
+                              order.status === "Processing") && (
+                              <FaClock className="inline mr-1" />
+                            )}
+                            {order.status}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <img
+                            src={
+                              firstItem.image ||
+                              "https://via.placeholder.com/100"
+                            }
+                            alt={firstItem.title}
+                            className="w-20 h-20 object-cover rounded-lg"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-800 mb-1">
+                              {firstItem.title}
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-2">
+                              {order.items?.length > 1
+                                ? `${order.items.length} items`
+                                : `Qty: ${firstItem.quantity || 1}`}
+                            </p>
+                            <p className="text-lg font-bold text-teal-600">
+                              ৳{order.totalAmount?.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-sm">
+                                {order.buyerName?.charAt(0).toUpperCase() ||
+                                  "B"}
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-gray-800">
+                                  {order.buyerName || "Buyer"}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {order.orderDate
+                                    ? new Date(
+                                        order.orderDate,
+                                      ).toLocaleDateString()
+                                    : "N/A"}
+                                </p>
+                              </div>
+                            </div>
+                            <button className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1">
+                              <FaPhone /> Contact
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
