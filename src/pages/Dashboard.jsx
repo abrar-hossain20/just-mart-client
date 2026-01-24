@@ -30,6 +30,28 @@ const Dashboard = () => {
   const [myProducts, setMyProducts] = useState([]);
   const [sellerOrders, setSellerOrders] = useState([]);
 
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(productId), {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setMyProducts(myProducts.filter((p) => p.id !== productId));
+        alert("Product deleted successfully!");
+      } else {
+        alert("Failed to delete product");
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Error deleting product");
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -49,9 +71,10 @@ const Dashboard = () => {
         const products = await productsRes.json();
         const orders = user?.email ? await ordersRes.json() : [];
 
-        // Filter products by current user (mock for demonstration)
-        // In production, you'd filter by user ID
-        const userProducts = products.slice(0, 3); // Mock: showing first 3
+        // Filter products by current user's email
+        const userProducts = products.filter(
+          (product) => product.sellerEmail === user?.email,
+        );
         setMyProducts(userProducts);
 
         // Mock seller orders - orders received for products the seller has listed
@@ -123,15 +146,6 @@ const Dashboard = () => {
 
   const stats = [
     {
-      title: "Active Listings",
-      value: myProducts.length,
-      icon: <FaBox />,
-      color: "blue",
-      bgColor: "bg-blue-100",
-      textColor: "text-blue-600",
-      link: "/my-products",
-    },
-    {
       title: "Orders Received",
       value: sellerOrders.length,
       icon: <FaShoppingBag />,
@@ -191,7 +205,7 @@ const Dashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {stats.map((stat, index) => (
             <Link
               key={index}
@@ -354,69 +368,99 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {myProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
-                    >
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-gray-800 mb-1">
-                              {product.title}
-                            </h3>
-                            <p className="text-sm text-gray-500 mb-2">
-                              {product.category}
-                            </p>
-                            <div className="flex items-center gap-4 text-sm">
-                              {product.rating && (
-                                <span className="flex items-center gap-1 text-gray-600">
-                                  <FaStar className="text-yellow-400" />
-                                  {product.rating}
-                                </span>
+                  {myProducts.slice(0, 5).map((product) => {
+                    const imageUrl =
+                      product.images?.[0] ||
+                      product.image ||
+                      product.imageUrl ||
+                      "https://via.placeholder.com/400x400?text=No+Image";
+
+                    return (
+                      <div
+                        key={product._id || product.id}
+                        className="flex flex-col sm:flex-row gap-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all duration-300"
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={product.title}
+                          className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg"
+                          onError={(e) => {
+                            e.target.src =
+                              "https://via.placeholder.com/400x400?text=No+Image";
+                          }}
+                        />
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2">
+                                {product.title}
+                              </h3>
+                              <p className="text-sm text-gray-500 mb-2">
+                                {product.category}
+                              </p>
+                              <div className="flex items-center gap-3 text-sm flex-wrap">
+                                {product.condition && (
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      product.condition === "New"
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-blue-100 text-blue-700"
+                                    }`}
+                                  >
+                                    {product.condition}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-left sm:text-right">
+                              <p className="text-xl font-bold text-teal-600">
+                                ৳{product.price?.toLocaleString()}
+                              </p>
+                              {product.originalPrice &&
+                                product.originalPrice > product.price && (
+                                  <p className="text-xs text-gray-400 line-through">
+                                    ৳{product.originalPrice.toLocaleString()}
+                                  </p>
+                                )}
+                              {product.discount && (
+                                <p className="text-xs text-green-600 font-semibold">
+                                  {product.discount}% OFF
+                                </p>
                               )}
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                  product.condition === "New"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-blue-100 text-blue-700"
-                                }`}
-                              >
-                                {product.condition}
-                              </span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-xl font-bold text-teal-600">
-                              ৳{product.price.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-gray-400 line-through">
-                              ৳{product.originalPrice.toLocaleString()}
-                            </p>
+                          <div className="flex gap-2 mt-3">
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/sell?edit=${product._id || product.id}`,
+                                )
+                              }
+                              className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1"
+                            >
+                              <FaEdit /> Edit
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDeleteProduct(product._id || product.id)
+                              }
+                              className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1"
+                            >
+                              <FaTrash /> Delete
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2 mt-3">
-                          <button className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-200 transition-colors flex items-center gap-1">
-                            <FaEdit /> Edit
-                          </button>
-                          <button className="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition-colors flex items-center gap-1">
-                            <FaTrash /> Delete
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  ))}
-                  <Link
-                    to="/my-products"
-                    className="block text-center py-3 text-teal-600 hover:text-teal-700 font-semibold"
-                  >
-                    View All Products →
-                  </Link>
+                    );
+                  })}
+                  {myProducts.length > 5 && (
+                    <Link
+                      to="/my-products"
+                      className="block text-center py-3 text-teal-600 hover:text-teal-700 font-semibold"
+                    >
+                      View All {myProducts.length} Products →
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
@@ -487,54 +531,6 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Account Status</span>
                   <span className="font-semibold text-green-600">Active</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">
-                Recent Activity
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
-                    <FaCheckCircle className="text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-gray-800 font-medium">
-                      New order received
-                    </p>
-                    <p className="text-gray-500 text-xs flex items-center gap-1">
-                      <FaClock /> 1 hour ago
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                    <FaEye className="text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-gray-800 font-medium">
-                      Product viewed 15 times
-                    </p>
-                    <p className="text-gray-500 text-xs flex items-center gap-1">
-                      <FaClock /> 3 hours ago
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 text-sm">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
-                    <FaChartLine className="text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-gray-800 font-medium">
-                      Product listing updated
-                    </p>
-                    <p className="text-gray-500 text-xs flex items-center gap-1">
-                      <FaClock /> 1 day ago
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
