@@ -8,6 +8,7 @@ import Dashboard from "../pages/Dashboard";
 import Wishlist from "../pages/Wishlist";
 import Orders from "../pages/Orders";
 import SellItem from "../pages/SellItem";
+import MyProducts from "../pages/MyProducts";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import PrivateRoute from "../privateRoute/PrivateRoute";
@@ -70,6 +71,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <SellItem></SellItem>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-products",
+        element: (
+          <PrivateRoute>
+            <MyProducts></MyProducts>
           </PrivateRoute>
         ),
       },
