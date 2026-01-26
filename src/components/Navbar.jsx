@@ -279,6 +279,13 @@ const Navbar = () => {
                 >
                   My Orders
                 </Link>
+                <Link
+                  to="/profile"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="block text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                >
+                  Profile Settings
+                </Link>
                 <button
                   onClick={() => {
                     handleLogout();

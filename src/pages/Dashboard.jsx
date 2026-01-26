@@ -312,12 +312,6 @@ const Dashboard = () => {
                             : "N/A"}
                         </p>
                         <div className="flex gap-2">
-                          <Link
-                            to="/orders"
-                            className="text-teal-600 hover:text-teal-700 font-semibold"
-                          >
-                            View Details →
-                          </Link>
                           {order.status !== "Delivered" &&
                             order.status !== "Cancelled" && (
                               <button

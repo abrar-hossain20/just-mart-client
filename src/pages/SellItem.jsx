@@ -13,6 +13,8 @@ const SellItem = () => {
   const [loadingProduct, setLoadingProduct] = useState(!!editId);
   const [categories, setCategories] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -31,10 +33,28 @@ const SellItem = () => {
 
   useEffect(() => {
     fetchCategories();
+    if (user) {
+      fetchUserProfile();
+    }
     if (editId) {
       fetchProductForEdit(editId);
     }
-  }, [editId]);
+  }, [editId, user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      setCheckingProfile(true);
+      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data.profile);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setCheckingProfile(false);
+    }
+  };
 
   const fetchProductForEdit = async (productId) => {
     try {
@@ -189,6 +209,18 @@ const SellItem = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if user has selling contact number
+    if (!userProfile?.sellingContactNumber) {
+      if (
+        window.confirm(
+          "You need to add a selling contact number to sell products. Would you like to update your profile now?",
+        )
+      ) {
+        navigate("/profile");
+      }
+      return;
+    }
 
     if (!validateForm()) {
       return;

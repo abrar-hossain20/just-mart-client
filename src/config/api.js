@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   // Users
   USER_REGISTER: `${API_BASE_URL}/api/users/register`,
   USER_BY_EMAIL: (email) => `${API_BASE_URL}/api/users/${email}`,
+  USER_PROFILE: (email) => `${API_BASE_URL}/api/users/${email}/profile`,
 
   // Cart
   CART: (email) => `${API_BASE_URL}/api/cart/${email}`,

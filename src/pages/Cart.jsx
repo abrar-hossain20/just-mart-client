@@ -20,10 +20,45 @@ const Cart = () => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [checkingProfile, setCheckingProfile] = useState(true);
+
+  React.useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      setCheckingProfile(true);
+      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfile(data.profile);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setCheckingProfile(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!user) {
       navigate("/signin", { state: { from: "/cart" } });
+      return;
+    }
+
+    // Check if user has buying contact number
+    if (!userProfile?.buyingContactNumber) {
+      if (
+        window.confirm(
+          "You need to add a buying contact number to purchase products. Would you like to update your profile now?",
+        )
+      ) {
+        navigate("/profile");
+      }
       return;
     }
 

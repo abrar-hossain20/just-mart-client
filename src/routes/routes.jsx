@@ -9,6 +9,7 @@ import Wishlist from "../pages/Wishlist";
 import Orders from "../pages/Orders";
 import SellItem from "../pages/SellItem";
 import MyProducts from "../pages/MyProducts";
+import MyProfile from "../pages/MyProfile";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import PrivateRoute from "../privateRoute/PrivateRoute";
@@ -79,6 +80,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <MyProducts></MyProducts>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <PrivateRoute>
+            <MyProfile></MyProfile>
           </PrivateRoute>
         ),
       },
