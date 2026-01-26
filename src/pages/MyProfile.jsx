@@ -45,9 +45,13 @@ const MyProfile = () => {
             },
           });
         }
+      } else {
+        console.error("Failed to fetch profile:", response.statusText);
+        // Don't show error to user, just use default profile
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      // Don't show error to user, just use default profile
     } finally {
       setLoading(false);
     }
@@ -127,6 +131,8 @@ const MyProfile = () => {
       if (response.ok) {
         alert("Profile updated successfully!");
         setIsEditing(false);
+        // Refetch the profile to confirm it was saved
+        await fetchProfile();
       } else {
         const error = await response.json();
         alert(error.message || "Failed to update profile");
