@@ -53,6 +53,41 @@ const Dashboard = () => {
     }
   };
 
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDER_CANCEL(orderId), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userEmail: user.email }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to cancel order");
+      }
+
+      // Update local state
+      setMyOrders(
+        myOrders.map((order) =>
+          order._id === orderId ? { ...order, status: "Cancelled" } : order,
+        ),
+      );
+
+      alert("Order cancelled successfully!");
+      // Refresh data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      alert(error.message || "Failed to cancel order. Please try again.");
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -276,12 +311,23 @@ const Dashboard = () => {
                             ? new Date(order.orderDate).toLocaleDateString()
                             : "N/A"}
                         </p>
-                        <Link
-                          to="/orders"
-                          className="text-teal-600 hover:text-teal-700 font-semibold"
-                        >
-                          View Details →
-                        </Link>
+                        <div className="flex gap-2">
+                          <Link
+                            to="/orders"
+                            className="text-teal-600 hover:text-teal-700 font-semibold"
+                          >
+                            View Details →
+                          </Link>
+                          {order.status !== "Delivered" &&
+                            order.status !== "Cancelled" && (
+                              <button
+                                onClick={() => handleCancelOrder(order._id)}
+                                className="text-red-600 hover:text-red-700 font-semibold"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                        </div>
                       </div>
                     </div>
                   ))}

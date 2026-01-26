@@ -31,6 +31,7 @@ const Orders = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [viewMode, setViewMode] = useState("seller"); // "seller" or "buyer"
 
   useEffect(() => {
     if (!user) {
@@ -39,12 +40,16 @@ const Orders = () => {
     }
 
     fetchOrders();
-  }, [user, navigate]);
+  }, [user, navigate, viewMode]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch(API_ENDPOINTS.ORDERS_RECEIVED(user.email));
+      const endpoint =
+        viewMode === "seller"
+          ? API_ENDPOINTS.ORDERS_RECEIVED(user.email)
+          : API_ENDPOINTS.ORDERS_BY_EMAIL(user.email);
+      const response = await fetch(endpoint);
       const data = await response.json();
 
       setOrders(data);
@@ -55,6 +60,45 @@ const Orders = () => {
       setFilteredOrders([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDER_CANCEL(orderId), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userEmail: user.email }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to cancel order");
+      }
+
+      // Update local state
+      setOrders(
+        orders.map((order) =>
+          order._id === orderId ? { ...order, status: "Cancelled" } : order,
+        ),
+      );
+      setFilteredOrders(
+        filteredOrders.map((order) =>
+          order._id === orderId ? { ...order, status: "Cancelled" } : order,
+        ),
+      );
+
+      alert("Order cancelled successfully!");
+      fetchOrders(); // Refresh orders
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      alert(error.message || "Failed to cancel order. Please try again.");
     }
   };
 
@@ -178,15 +222,43 @@ const Orders = () => {
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Orders Received</h1>
+              <h1 className="text-4xl font-bold mb-2">
+                {viewMode === "seller" ? "Orders Received" : "My Orders"}
+              </h1>
               <p className="text-teal-100 text-lg">
-                Manage orders from buyers who purchased your products
+                {viewMode === "seller"
+                  ? "Manage orders from buyers who purchased your products"
+                  : "Track your purchases and order status"}
               </p>
             </div>
             <div className="hidden md:block text-right">
               <p className="text-3xl font-bold">{orders.length}</p>
               <p className="text-teal-100">Total Orders</p>
             </div>
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="mt-6 flex gap-2">
+            <button
+              onClick={() => setViewMode("buyer")}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                viewMode === "buyer"
+                  ? "bg-white text-teal-600"
+                  : "bg-teal-700 text-white hover:bg-teal-800"
+              }`}
+            >
+              My Orders (Buyer)
+            </button>
+            <button
+              onClick={() => setViewMode("seller")}
+              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                viewMode === "seller"
+                  ? "bg-white text-teal-600"
+                  : "bg-teal-700 text-white hover:bg-teal-800"
+              }`}
+            >
+              Orders Received (Seller)
+            </button>
           </div>
         </div>
       </div>
@@ -358,73 +430,102 @@ const Orders = () => {
 
                 {/* Order Actions */}
                 <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                      <span className="font-semibold">
-                        Update Order Status:
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      {order.status !== "Pending" && (
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(order._id, "Pending")
-                          }
-                          className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200 transition-colors flex items-center gap-2"
-                        >
-                          <FaClock /> Mark as Pending
+                  {viewMode === "seller" ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <span className="font-semibold">
+                          Update Order Status:
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {order.status !== "Pending" &&
+                          order.status !== "Cancelled" && (
+                            <button
+                              onClick={() =>
+                                handleStatusUpdate(order._id, "Pending")
+                              }
+                              className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200 transition-colors flex items-center gap-2"
+                            >
+                              <FaClock /> Mark as Pending
+                            </button>
+                          )}
+                        {order.status !== "Processing" &&
+                          order.status !== "Cancelled" && (
+                            <button
+                              onClick={() =>
+                                handleStatusUpdate(order._id, "Processing")
+                              }
+                              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
+                            >
+                              <FaBox /> Mark as Processing
+                            </button>
+                          )}
+                        {order.status !== "Shipped" &&
+                          order.status !== "Cancelled" && (
+                            <button
+                              onClick={() =>
+                                handleStatusUpdate(order._id, "Shipped")
+                              }
+                              className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-colors flex items-center gap-2"
+                            >
+                              <FaShippingFast /> Mark as Shipped
+                            </button>
+                          )}
+                        {order.status !== "Delivered" &&
+                          order.status !== "Cancelled" && (
+                            <button
+                              onClick={() =>
+                                handleStatusUpdate(order._id, "Delivered")
+                              }
+                              className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition-colors flex items-center gap-2"
+                            >
+                              <FaCheckCircle /> Mark as Delivered
+                            </button>
+                          )}
+                        {order.status !== "Cancelled" && (
+                          <button
+                            onClick={() =>
+                              handleStatusUpdate(order._id, "Cancelled")
+                            }
+                            className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2"
+                          >
+                            <FaTimes /> Cancel Order
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-3 mt-2 pt-3 border-t border-gray-200">
+                        <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2">
+                          <FaPhone /> Contact Buyer
                         </button>
-                      )}
-                      {order.status !== "Processing" &&
-                        order.status !== "Cancelled" && (
-                          <button
-                            onClick={() =>
-                              handleStatusUpdate(order._id, "Processing")
-                            }
-                            className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
-                          >
-                            <FaBox /> Mark as Processing
-                          </button>
-                        )}
-                      {order.status !== "Shipped" &&
-                        order.status !== "Cancelled" && (
-                          <button
-                            onClick={() =>
-                              handleStatusUpdate(order._id, "Shipped")
-                            }
-                            className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-colors flex items-center gap-2"
-                          >
-                            <FaShippingFast /> Mark as Shipped
-                          </button>
-                        )}
-                      {order.status !== "Delivered" &&
-                        order.status !== "Cancelled" && (
-                          <button
-                            onClick={() =>
-                              handleStatusUpdate(order._id, "Delivered")
-                            }
-                            className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition-colors flex items-center gap-2"
-                          >
-                            <FaCheckCircle /> Mark as Delivered
-                          </button>
-                        )}
-                      {order.status !== "Cancelled" && (
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <span className="font-semibold">Order Actions:</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
                         <button
-                          onClick={() =>
-                            handleStatusUpdate(order._id, "Cancelled")
-                          }
-                          className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2"
+                          onClick={() => openOrderDetails(order)}
+                          className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
                         >
-                          <FaTimes /> Cancel Order
+                          <FaEye /> View Details
                         </button>
-                      )}
+                        {order.status !== "Delivered" &&
+                          order.status !== "Cancelled" && (
+                            <button
+                              onClick={() => handleCancelOrder(order._id)}
+                              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-colors flex items-center gap-2"
+                            >
+                              <FaTimes /> Cancel Order
+                            </button>
+                          )}
+                        <button className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center gap-2">
+                          <FaPhone /> Contact Seller
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-3 mt-2 pt-3 border-t border-gray-200">
-                      <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2">
-                        <FaPhone /> Contact Buyer
-                      </button>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}

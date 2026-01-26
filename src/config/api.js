@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
   ORDERS_BY_EMAIL: (email) => `${API_BASE_URL}/api/orders/${email}`,
   ORDERS_RECEIVED: (email) => `${API_BASE_URL}/api/orders/received/${email}`,
   ORDER_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/status`,
+  ORDER_CANCEL: (id) => `${API_BASE_URL}/api/orders/${id}/cancel`,
 
   // Stats
   STATS: `${API_BASE_URL}/api/stats`,

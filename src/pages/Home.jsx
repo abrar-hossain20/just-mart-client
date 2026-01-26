@@ -3,10 +3,6 @@ import { Link, useNavigate } from "react-router";
 import { API_ENDPOINTS } from "../config/api";
 import {
   FaSearch,
-  FaShieldAlt,
-  FaUserGraduate,
-  FaTruck,
-  FaDollarSign,
   FaBook,
   FaLaptop,
   FaTshirt,
@@ -19,6 +15,7 @@ import {
   FaStar,
   FaCheckCircle,
 } from "react-icons/fa";
+import heroImage from "../assets/hero.jpg";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -182,9 +179,9 @@ const Home = () => {
             </div>
             <div className="hidden md:block">
               <img
-                src="https://rankoone.com/wp-content/uploads/2024/02/eCommerce-Website-Components-photo.jpg"
+                src={heroImage}
                 alt="Students"
-                className="rounded-lg shadow-2xl"
+                className="rounded-lg shadow-2xl w-full h-auto max-h-[500px] object-cover"
               />
             </div>
           </div>
