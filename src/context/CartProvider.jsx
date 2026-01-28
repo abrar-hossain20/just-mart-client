@@ -12,6 +12,13 @@ const CartProvider = ({ children }) => {
   useEffect(() => {
     if (user?.email) {
       fetchCart();
+
+      // Refresh cart data every 30 seconds to get updated stock
+      const interval = setInterval(() => {
+        fetchCart();
+      }, 30000);
+
+      return () => clearInterval(interval);
     } else {
       setCart([]);
     }
@@ -48,6 +55,16 @@ const CartProvider = ({ children }) => {
   const addToCart = async (product) => {
     if (!user?.email) {
       console.error("User must be logged in to add to cart");
+      return;
+    }
+
+    // Check stock before adding
+    const existingItem = cart.find((item) => item._id === product._id);
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+    const productStock = product.stock || 0;
+
+    if (productStock > 0 && currentQuantity >= productStock) {
+      alert(`Cannot add more. Only ${productStock} items available in stock.`);
       return;
     }
 
@@ -110,6 +127,15 @@ const CartProvider = ({ children }) => {
 
     if (quantity <= 0) {
       removeFromCart(productId);
+      return;
+    }
+
+    // Check stock before updating quantity
+    const product = cart.find((item) => item._id === productId);
+    const productStock = product?.stock || 0;
+
+    if (productStock > 0 && quantity > productStock) {
+      alert(`Cannot add more. Only ${productStock} items available in stock.`);
       return;
     }
 

@@ -193,29 +193,41 @@ const Cart = () => {
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between mt-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-3">
                       {/* Quantity Controls */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item._id, item.quantity - 1)
-                          }
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                          disabled={item.quantity <= 1}
-                        >
-                          <FaMinus className="text-sm" />
-                        </button>
-                        <span className="w-12 text-center font-semibold">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item._id, item.quantity + 1)
-                          }
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                        >
-                          <FaPlus className="text-sm" />
-                        </button>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              updateQuantity(item._id, item.quantity - 1)
+                            }
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                            disabled={item.quantity <= 1}
+                          >
+                            <FaMinus className="text-sm" />
+                          </button>
+                          <span className="w-12 text-center font-semibold">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() =>
+                              updateQuantity(item._id, item.quantity + 1)
+                            }
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={
+                              item.stock > 0 && item.quantity >= item.stock
+                            }
+                          >
+                            <FaPlus className="text-sm" />
+                          </button>
+                        </div>
+                        {item.stock > 0 && (
+                          <p className="text-xs text-gray-500 text-center">
+                            {item.stock - item.quantity > 0
+                              ? `${item.stock - item.quantity} left in stock`
+                              : "Max stock reached"}
+                          </p>
+                        )}
                       </div>
 
                       {/* Price */}

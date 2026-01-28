@@ -35,46 +35,52 @@ const ProductDetails = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [showAddedMessage, setShowAddedMessage] = useState(false);
 
-  useEffect(() => {
-    // Fetch product from backend API
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(id));
-        if (!response.ok) {
-          throw new Error("Product not found");
-        }
-
-        const foundProduct = await response.json();
-        setProduct(foundProduct);
-
-        // Set the first image from images array or fallback to single image
-        const firstImage =
-          foundProduct.images?.[0] ||
-          foundProduct.image ||
-          "https://via.placeholder.com/400";
-        setSelectedImage(firstImage);
-
-        // Fetch all products to get related ones
-        const allProductsRes = await fetch(API_ENDPOINTS.PRODUCTS);
-        const allProducts = await allProductsRes.json();
-
-        // Get related products from same category
-        const related = allProducts
-          .filter(
-            (p) =>
-              p.category === foundProduct.category &&
-              p._id !== foundProduct._id,
-          )
-          .slice(0, 4);
-        setRelatedProducts(related);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error loading product:", error);
-        setLoading(false);
+  // Fetch product from backend API
+  const fetchProduct = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(id));
+      if (!response.ok) {
+        throw new Error("Product not found");
       }
-    };
 
+      const foundProduct = await response.json();
+      setProduct(foundProduct);
+
+      // Set the first image from images array or fallback to single image
+      const firstImage =
+        foundProduct.images?.[0] ||
+        foundProduct.image ||
+        "https://via.placeholder.com/400";
+      setSelectedImage(firstImage);
+
+      // Fetch all products to get related ones
+      const allProductsRes = await fetch(API_ENDPOINTS.PRODUCTS);
+      const allProducts = await allProductsRes.json();
+
+      // Get related products from same category
+      const related = allProducts
+        .filter(
+          (p) =>
+            p.category === foundProduct.category && p._id !== foundProduct._id,
+        )
+        .slice(0, 4);
+      setRelatedProducts(related);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error loading product:", error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProduct();
+
+    // Refresh product data every 30 seconds to get updated ratings and stock
+    const interval = setInterval(() => {
+      fetchProduct();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [id]);
 
   if (loading || authLoading) {
@@ -235,11 +241,11 @@ const ProductDetails = () => {
               <span className="absolute top-4 right-4 bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                 {product.condition}
               </span>
-              {product.condition === "New" && product.rating >= 0 && (
+              {product.rating !== undefined && product.rating >= 0 && (
                 <div className="absolute bottom-4 right-4 bg-white px-3 py-2 rounded-full flex items-center gap-1 shadow-lg">
                   <FaStar className="text-yellow-400" />
                   <span className="text-sm font-bold text-gray-800">
-                    {product.rating}
+                    {product.rating.toFixed(1)}
                   </span>
                 </div>
               )}
@@ -283,16 +289,29 @@ const ProductDetails = () => {
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
                     {product.title}
                   </h1>
-                  {product.condition === "New" && product.rating >= 0 && (
+                  {product.rating !== undefined && product.rating >= 0 && (
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1 text-yellow-400">
-                        {[...Array(parseInt(product.rating))].map((_, i) => (
-                          <FaStar key={i} />
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FaStar
+                            key={star}
+                            className={`${
+                              star <= Math.round(product.rating)
+                                ? "text-yellow-400"
+                                : "text-gray-300"
+                            }`}
+                          />
                         ))}
                       </div>
                       <span className="text-lg font-bold text-gray-800">
-                        {product.rating}
+                        {product.rating.toFixed(1)}
                       </span>
+                      {product.totalRatings > 0 && (
+                        <span className="text-sm text-gray-500">
+                          ({product.totalRatings}{" "}
+                          {product.totalRatings === 1 ? "rating" : "ratings"})
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

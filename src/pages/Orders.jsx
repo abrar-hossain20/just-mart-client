@@ -32,6 +32,12 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [viewMode, setViewMode] = useState("seller"); // "seller" or "buyer"
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingProduct, setRatingProduct] = useState(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -196,6 +202,63 @@ const Orders = () => {
   const closeOrderDetails = () => {
     setShowDetailsModal(false);
     setSelectedOrder(null);
+  };
+
+  const openRatingModal = (order, item) => {
+    setRatingProduct({ ...item, orderId: order._id });
+    setRatingValue(0);
+    setReviewText("");
+    setShowRatingModal(true);
+  };
+
+  const closeRatingModal = () => {
+    setShowRatingModal(false);
+    setRatingProduct(null);
+    setRatingValue(0);
+    setHoverRating(0);
+    setReviewText("");
+  };
+
+  const handleRatingSubmit = async () => {
+    if (ratingValue === 0) {
+      alert("Please select a rating");
+      return;
+    }
+
+    setSubmittingRating(true);
+    try {
+      console.log("Submitting rating for product:", ratingProduct);
+      const response = await fetch(API_ENDPOINTS.RATINGS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId:
+            ratingProduct.productId || ratingProduct.id || ratingProduct._id,
+          buyerEmail: user.email,
+          orderId: ratingProduct.orderId,
+          rating: ratingValue,
+          review: reviewText,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit rating");
+      }
+
+      const result = await response.json();
+      console.log("Rating submitted successfully:", result);
+      alert("Rating submitted successfully!");
+      closeRatingModal();
+      fetchOrders(); // Refresh orders to update rating status
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      alert(error.message || "Failed to submit rating. Please try again.");
+    } finally {
+      setSubmittingRating(false);
+    }
   };
 
   if (loading) {
@@ -385,6 +448,17 @@ const Orders = () => {
                             ৳{item.price.toLocaleString()}
                           </p>
                         </div>
+                        {viewMode === "buyer" &&
+                          order.status === "Delivered" && (
+                            <div className="flex items-center">
+                              <button
+                                onClick={() => openRatingModal(order, item)}
+                                className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold hover:bg-yellow-200 transition-colors flex items-center gap-2"
+                              >
+                                <FaStar /> Rate Product
+                              </button>
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -704,6 +778,122 @@ const Orders = () => {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rating Modal */}
+      {showRatingModal && ratingProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            {/* Modal Header */}
+            <div className="bg-linear-to-r from-yellow-500 to-orange-500 text-white px-6 py-4 rounded-t-lg">
+              <h2 className="text-xl font-bold">Rate Product</h2>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="mb-6">
+                <div className="flex gap-4 mb-4">
+                  <img
+                    src={
+                      ratingProduct.image || "https://via.placeholder.com/100"
+                    }
+                    alt={ratingProduct.title}
+                    className="w-20 h-20 object-cover rounded-lg"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {ratingProduct.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      ৳{ratingProduct.price.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Star Rating */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Your Rating
+                </label>
+                <div className="flex gap-2 justify-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRatingValue(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <FaStar
+                        className={`text-4xl ${
+                          star <= (hoverRating || ratingValue)
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                {ratingValue > 0 && (
+                  <p className="text-center text-sm text-gray-600 mt-2">
+                    {ratingValue === 1 && "Poor"}
+                    {ratingValue === 2 && "Fair"}
+                    {ratingValue === 3 && "Good"}
+                    {ratingValue === 4 && "Very Good"}
+                    {ratingValue === 5 && "Excellent"}
+                  </p>
+                )}
+              </div>
+
+              {/* Review Text */}
+              <div className="mb-6">
+                <label
+                  htmlFor="review"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Your Review (Optional)
+                </label>
+                <textarea
+                  id="review"
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Share your experience with this product..."
+                  rows="4"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={closeRatingModal}
+                  disabled={submittingRating}
+                  className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRatingSubmit}
+                  disabled={submittingRating || ratingValue === 0}
+                  className="flex-1 px-4 py-3 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submittingRating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <FaStar /> Submit Rating
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

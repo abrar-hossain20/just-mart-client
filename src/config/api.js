@@ -31,6 +31,12 @@ export const API_ENDPOINTS = {
   ORDER_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/status`,
   ORDER_CANCEL: (id) => `${API_BASE_URL}/api/orders/${id}/cancel`,
 
+  // Ratings
+  RATINGS: `${API_BASE_URL}/api/ratings`,
+  RATINGS_BY_PRODUCT: (productId) => `${API_BASE_URL}/api/ratings/${productId}`,
+  RATING_CHECK: (orderId, productId) =>
+    `${API_BASE_URL}/api/ratings/check/${orderId}/${productId}`,
+
   // Stats
   STATS: `${API_BASE_URL}/api/stats`,
 };
