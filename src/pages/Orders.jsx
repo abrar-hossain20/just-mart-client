@@ -463,31 +463,6 @@ const Orders = () => {
                     ))}
                   </div>
 
-                  {/* Buyer Information */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <h4 className="font-semibold text-gray-800 mb-3">
-                      Buyer Information
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FaUserCircle className="text-blue-500" />
-                        <span>{order.buyerName}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FaEnvelope className="text-teal-500" />
-                        <span>{order.buyerEmail}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Payment Status */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <FaCheckCircle className="text-green-500" />
-                      <span>Payment: {order.paymentStatus}</span>
-                    </div>
-                  </div>
-
                   {/* Cancellation Reason */}
                   {order.status === "Cancelled" && order.cancellationReason && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
@@ -568,7 +543,25 @@ const Orders = () => {
                         )}
                       </div>
                       <div className="flex flex-wrap gap-3 mt-2 pt-3 border-t border-gray-200">
-                        <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2">
+                        <button
+                          onClick={() => openOrderDetails(order)}
+                          className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-semibold hover:bg-blue-200 transition-colors flex items-center gap-2"
+                        >
+                          <FaEye /> View Details
+                        </button>
+                        <button
+                          onClick={() => {
+                            const buyerEmail = order.buyerEmail;
+                            if (buyerEmail) {
+                              navigate(
+                                `/profile?user=${encodeURIComponent(buyerEmail)}`,
+                              );
+                            } else {
+                              alert("Buyer information not available");
+                            }
+                          }}
+                          className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center gap-2"
+                        >
                           <FaPhone /> Contact Buyer
                         </button>
                       </div>
@@ -594,7 +587,19 @@ const Orders = () => {
                               <FaTimes /> Cancel Order
                             </button>
                           )}
-                        <button className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const sellerEmail = order.items?.[0]?.sellerEmail;
+                            if (sellerEmail) {
+                              navigate(
+                                `/profile?user=${encodeURIComponent(sellerEmail)}`,
+                              );
+                            } else {
+                              alert("Seller information not available");
+                            }
+                          }}
+                          className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center gap-2"
+                        >
                           <FaPhone /> Contact Seller
                         </button>
                       </div>
@@ -625,17 +630,27 @@ const Orders = () => {
             <div className="p-6">
               {/* Order Info */}
               <div className="mb-6">
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  Order Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Order ID</p>
                     <p className="font-bold text-gray-800">
-                      {selectedOrder.id}
+                      {selectedOrder._id.slice(-8).toUpperCase()}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Order Date</p>
                     <p className="font-semibold text-gray-800">
-                      {new Date(selectedOrder.date).toLocaleDateString()}
+                      {new Date(selectedOrder.orderDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        },
+                      )}
                     </p>
                   </div>
                   <div>
@@ -652,50 +667,88 @@ const Orders = () => {
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Total Amount</p>
                     <p className="font-bold text-teal-600 text-xl">
-                      ৳{selectedOrder.total.toLocaleString()}
+                      ৳{selectedOrder.totalAmount.toLocaleString()}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Tracking Timeline */}
+              {/* Buyer Information */}
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">
-                  Order Tracking
+                  Buyer Information
                 </h3>
-                <div className="space-y-4">
-                  {selectedOrder.trackingSteps.map((step, index) => (
-                    <div key={index} className="flex items-start gap-4">
-                      <div className="relative">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            step.completed
-                              ? "bg-teal-600 text-white"
-                              : "bg-gray-200 text-gray-400"
-                          }`}
-                        >
-                          {step.completed ? <FaCheckCircle /> : <FaClock />}
-                        </div>
-                        {index < selectedOrder.trackingSteps.length - 1 && (
-                          <div
-                            className={`absolute left-1/2 top-10 w-0.5 h-8 -translate-x-1/2 ${
-                              step.completed ? "bg-teal-600" : "bg-gray-200"
-                            }`}
-                          ></div>
-                        )}
-                      </div>
-                      <div className="flex-1 pt-2">
-                        <p
-                          className={`font-semibold ${
-                            step.completed ? "text-gray-800" : "text-gray-400"
-                          }`}
-                        >
-                          {step.status}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <FaUserCircle className="text-blue-500 text-xl" />
+                      <div>
+                        <p className="text-xs text-gray-500">Name</p>
+                        <p className="font-semibold">
+                          {selectedOrder.buyerName}
                         </p>
-                        <p className="text-sm text-gray-500">{step.date}</p>
                       </div>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <FaEnvelope className="text-teal-500 text-xl" />
+                      <div>
+                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="font-semibold">
+                          {selectedOrder.buyerEmail}
+                        </p>
+                      </div>
+                    </div>
+                    {selectedOrder.buyerPhone && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <FaPhone className="text-green-500 text-xl" />
+                        <div>
+                          <p className="text-xs text-gray-500">Phone</p>
+                          <p className="font-semibold">
+                            {selectedOrder.buyerPhone}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Information */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">
+                  Payment Information
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-gray-700">
+                      <FaCheckCircle
+                        className={`text-xl ${
+                          selectedOrder.paymentStatus === "Paid"
+                            ? "text-green-500"
+                            : "text-yellow-500"
+                        }`}
+                      />
+                      <div>
+                        <p className="text-xs text-gray-500">Payment Status</p>
+                        <p className="font-semibold">
+                          {selectedOrder.paymentStatus}
+                        </p>
+                      </div>
+                    </div>
+                    {selectedOrder.paymentMethod && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <FaBox className="text-purple-500 text-xl" />
+                        <div>
+                          <p className="text-xs text-gray-500">
+                            Payment Method
+                          </p>
+                          <p className="font-semibold">
+                            {selectedOrder.paymentMethod}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -705,13 +758,13 @@ const Orders = () => {
                   Order Items
                 </h3>
                 <div className="space-y-4">
-                  {selectedOrder.items.map((item) => (
+                  {selectedOrder.items.map((item, index) => (
                     <div
-                      key={item.id}
+                      key={index}
                       className="flex gap-4 p-4 border border-gray-200 rounded-lg"
                     >
                       <img
-                        src={item.image}
+                        src={item.image || "https://via.placeholder.com/100"}
                         alt={item.title}
                         className="w-20 h-20 object-cover rounded-lg"
                       />
@@ -731,54 +784,51 @@ const Orders = () => {
                 </div>
               </div>
 
-              {/* Seller Info */}
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">
-                  Seller Information
-                </h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center gap-4 mb-4">
-                    <img
-                      src={selectedOrder.seller.avatar}
-                      alt={selectedOrder.seller.name}
-                      className="w-16 h-16 rounded-full"
-                    />
-                    <div>
-                      <p className="font-bold text-gray-800 text-lg">
-                        {selectedOrder.seller.name}
+              {/* Delivery Address */}
+              {selectedOrder.deliveryAddress && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">
+                    Delivery Address
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-start gap-2 text-gray-700">
+                      <FaMapMarkerAlt className="text-teal-500 mt-1" />
+                      <p className="font-semibold">
+                        {selectedOrder.deliveryAddress}
                       </p>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                        <span className="flex items-center gap-1">
-                          <FaPhone className="text-teal-500" />
-                          {selectedOrder.seller.phone}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <FaEnvelope className="text-blue-500" />
-                          {selectedOrder.seller.email}
-                        </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Cancellation Reason */}
+              {selectedOrder.status === "Cancelled" &&
+                selectedOrder.cancellationReason && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">
+                      Cancellation Information
+                    </h3>
+                    <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-4 rounded-lg">
+                      <FaTimes className="mt-0.5 text-lg" />
+                      <div>
+                        <p className="font-semibold">Reason:</p>
+                        <p>{selectedOrder.cancellationReason}</p>
                       </div>
                     </div>
                   </div>
-                  <button className="w-full py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors">
-                    Contact Seller
-                  </button>
-                </div>
-              </div>
+                )}
 
-              {/* Delivery Address */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">
-                  Delivery Address
-                </h3>
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-start gap-2 text-gray-700">
-                    <FaMapMarkerAlt className="text-teal-500 mt-1" />
-                    <p className="font-semibold">
-                      {selectedOrder.deliveryAddress}
-                    </p>
+              {/* Additional Notes */}
+              {selectedOrder.notes && (
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">
+                    Order Notes
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-700">{selectedOrder.notes}</p>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

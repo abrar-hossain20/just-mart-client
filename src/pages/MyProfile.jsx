@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import {
@@ -11,9 +12,16 @@ import {
 
 const MyProfile = () => {
   const { user } = useContext(AuthContext);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const viewingUserEmail = searchParams.get("user");
+  const isViewingOtherUser =
+    viewingUserEmail && viewingUserEmail !== user?.email;
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [viewedUserInfo, setViewedUserInfo] = useState(null);
   const [profile, setProfile] = useState({
     buyingContactNumber: "",
     sellingContactNumber: "",
@@ -28,13 +36,17 @@ const MyProfile = () => {
     if (user) {
       fetchProfile();
     }
-  }, [user]);
+  }, [user, viewingUserEmail]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+      const emailToFetch = isViewingOtherUser ? viewingUserEmail : user.email;
+      const response = await fetch(API_ENDPOINTS.USER_PROFILE(emailToFetch));
       if (response.ok) {
         const data = await response.json();
+        if (isViewingOtherUser) {
+          setViewedUserInfo(data);
+        }
         if (data.profile) {
           setProfile({
             buyingContactNumber: data.profile.buyingContactNumber || "",
@@ -156,6 +168,11 @@ const MyProfile = () => {
   const hasContactNumbers =
     profile.buyingContactNumber || profile.sellingContactNumber;
 
+  const displayName = isViewingOtherUser
+    ? viewedUserInfo?.displayName || viewedUserInfo?.email || viewingUserEmail
+    : user?.displayName || user?.email;
+  const displayEmail = isViewingOtherUser ? viewingUserEmail : user?.email;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -164,11 +181,13 @@ const MyProfile = () => {
           <div className="flex items-center gap-4">
             <FaUserCircle className="text-5xl text-teal-600" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
-              <p className="text-gray-600">{user?.email}</p>
+              <h1 className="text-3xl font-bold text-gray-800">
+                {isViewingOtherUser ? `${displayName}'s Profile` : "My Profile"}
+              </h1>
+              <p className="text-gray-600">{displayEmail}</p>
             </div>
           </div>
-          {!isEditing && (
+          {!isViewingOtherUser && !isEditing && (
             <button
               onClick={() => setIsEditing(true)}
               className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition"
@@ -176,10 +195,18 @@ const MyProfile = () => {
               <FaEdit /> Edit Profile
             </button>
           )}
+          {isViewingOtherUser && (
+            <button
+              onClick={() => navigate("/profile")}
+              className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+            >
+              Back to My Profile
+            </button>
+          )}
         </div>
 
         {/* Warning Alert */}
-        {!hasContactNumbers && (
+        {!isViewingOtherUser && !hasContactNumbers && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -223,7 +250,9 @@ const MyProfile = () => {
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Buying Contact Number{" "}
-                    <span className="text-red-500">*</span>
+                    {!isViewingOtherUser && (
+                      <span className="text-red-500">*</span>
+                    )}
                   </label>
                   <input
                     type="tel"
@@ -231,22 +260,28 @@ const MyProfile = () => {
                     name="buyingContactNumber"
                     value={profile.buyingContactNumber}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
+                    disabled={!isEditing || isViewingOtherUser}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
                       errors.buyingContactNumber
                         ? "border-red-500"
                         : "border-gray-300"
-                    } ${!isEditing ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                    placeholder="Enter your buying contact number"
+                    } ${!isEditing || isViewingOtherUser ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                    placeholder={
+                      isViewingOtherUser
+                        ? profile.buyingContactNumber || "Not provided"
+                        : "Enter your buying contact number"
+                    }
                   />
                   {errors.buyingContactNumber && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.buyingContactNumber}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    This number will be used when you purchase products
-                  </p>
+                  {!isViewingOtherUser && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      This number will be used when you purchase products
+                    </p>
+                  )}
                 </div>
 
                 {/* Selling Contact Number */}
@@ -256,7 +291,9 @@ const MyProfile = () => {
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
                     Selling Contact Number{" "}
-                    <span className="text-red-500">*</span>
+                    {!isViewingOtherUser && (
+                      <span className="text-red-500">*</span>
+                    )}
                   </label>
                   <input
                     type="tel"
@@ -264,23 +301,29 @@ const MyProfile = () => {
                     name="sellingContactNumber"
                     value={profile.sellingContactNumber}
                     onChange={handleInputChange}
-                    disabled={!isEditing}
+                    disabled={!isEditing || isViewingOtherUser}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
                       errors.sellingContactNumber
                         ? "border-red-500"
                         : "border-gray-300"
-                    } ${!isEditing ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                    placeholder="Enter your selling contact number"
+                    } ${!isEditing || isViewingOtherUser ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                    placeholder={
+                      isViewingOtherUser
+                        ? profile.sellingContactNumber || "Not provided"
+                        : "Enter your selling contact number"
+                    }
                   />
                   {errors.sellingContactNumber && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.sellingContactNumber}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Buyers will use this number to contact you about your
-                    products
-                  </p>
+                  {!isViewingOtherUser && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Buyers will use this number to contact you about your
+                      products
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -305,7 +348,7 @@ const MyProfile = () => {
                         profile.address.locationType === "Inside Campus"
                           ? "border-teal-500 bg-teal-50"
                           : "border-gray-300 hover:border-teal-300"
-                      } ${!isEditing ? "cursor-not-allowed opacity-60" : ""}`}
+                      } ${!isEditing || isViewingOtherUser ? "cursor-not-allowed opacity-60" : ""}`}
                     >
                       <input
                         type="radio"
@@ -323,7 +366,7 @@ const MyProfile = () => {
                             },
                           });
                         }}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isViewingOtherUser}
                         className="w-4 h-4 text-teal-600 focus:ring-teal-500"
                       />
                       <span className="ml-3 font-medium text-gray-700">
@@ -337,7 +380,7 @@ const MyProfile = () => {
                         profile.address.locationType === "Near Campus"
                           ? "border-teal-500 bg-teal-50"
                           : "border-gray-300 hover:border-teal-300"
-                      } ${!isEditing ? "cursor-not-allowed opacity-60" : ""}`}
+                      } ${!isEditing || isViewingOtherUser ? "cursor-not-allowed opacity-60" : ""}`}
                     >
                       <input
                         type="radio"
@@ -353,7 +396,7 @@ const MyProfile = () => {
                             },
                           });
                         }}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isViewingOtherUser}
                         className="w-4 h-4 text-teal-600 focus:ring-teal-500"
                       />
                       <span className="ml-3 font-medium text-gray-700">
@@ -367,7 +410,7 @@ const MyProfile = () => {
                         profile.address.locationType === "Outside Campus"
                           ? "border-teal-500 bg-teal-50"
                           : "border-gray-300 hover:border-teal-300"
-                      } ${!isEditing ? "cursor-not-allowed opacity-60" : ""}`}
+                      } ${!isEditing || isViewingOtherUser ? "cursor-not-allowed opacity-60" : ""}`}
                     >
                       <input
                         type="radio"
@@ -385,7 +428,7 @@ const MyProfile = () => {
                             },
                           });
                         }}
-                        disabled={!isEditing}
+                        disabled={!isEditing || isViewingOtherUser}
                         className="w-4 h-4 text-teal-600 focus:ring-teal-500"
                       />
                       <span className="ml-3 font-medium text-gray-700">
@@ -402,7 +445,10 @@ const MyProfile = () => {
                       htmlFor="customAddress"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      Address Details <span className="text-red-500">*</span>
+                      Address Details{" "}
+                      {!isViewingOtherUser && (
+                        <span className="text-red-500">*</span>
+                      )}
                     </label>
                     <textarea
                       id="customAddress"
@@ -417,23 +463,31 @@ const MyProfile = () => {
                           },
                         });
                       }}
-                      disabled={!isEditing}
+                      disabled={!isEditing || isViewingOtherUser}
                       rows={3}
                       className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
-                        !isEditing ? "bg-gray-100 cursor-not-allowed" : ""
+                        !isEditing || isViewingOtherUser
+                          ? "bg-gray-100 cursor-not-allowed"
+                          : ""
                       }`}
-                      placeholder="Enter your complete address:"
+                      placeholder={
+                        isViewingOtherUser
+                          ? profile.address.customAddress || "Not provided"
+                          : "Enter your complete address"
+                      }
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Please provide your full address for delivery purposes
-                    </p>
+                    {!isViewingOtherUser && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Please provide your full address for delivery purposes
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
             {/* Action Buttons */}
-            {isEditing && (
+            {isEditing && !isViewingOtherUser && (
               <div className="flex gap-4 justify-end">
                 <button
                   type="button"
