@@ -421,31 +421,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-linear-to-r from-blue-600 to-cyan-600 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Start Trading?
-          </h2>
-          <p className="text-xl mb-8 text-blue-100">
-            Join thousands of students buying and selling on Just Mart
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register"
-              className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-            >
-              Sign Up Now
-            </Link>
-            <Link
-              to="/products"
-              className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300"
-            >
-              Browse Products
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

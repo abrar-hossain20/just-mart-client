@@ -20,6 +20,7 @@ import {
   FaTwitter,
   FaWhatsapp,
   FaLock,
+  FaTimes,
 } from "react-icons/fa";
 
 const ProductDetails = () => {
@@ -34,6 +35,8 @@ const ProductDetails = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedImage, setSelectedImage] = useState("");
   const [showAddedMessage, setShowAddedMessage] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [sellerProfile, setSellerProfile] = useState(null);
 
   // Fetch product from backend API
   const fetchProduct = async () => {
@@ -65,6 +68,22 @@ const ProductDetails = () => {
         )
         .slice(0, 4);
       setRelatedProducts(related);
+
+      // Fetch seller profile
+      if (foundProduct.sellerEmail) {
+        try {
+          const profileRes = await fetch(
+            API_ENDPOINTS.USER_PROFILE(foundProduct.sellerEmail),
+          );
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            setSellerProfile(profileData.profile);
+          }
+        } catch (error) {
+          console.error("Error loading seller profile:", error);
+        }
+      }
+
       setLoading(false);
     } catch (error) {
       console.error("Error loading product:", error);
@@ -389,7 +408,10 @@ const ProductDetails = () => {
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-6">
-              <button className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setShowContactModal(true)}
+                className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+              >
                 <FaPhone />
                 Contact Seller
               </button>
@@ -459,13 +481,20 @@ const ProductDetails = () => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <a
-                  href={`mailto:${product.sellerEmail || product.seller?.email}`}
+                <button
+                  onClick={() => setShowContactModal(true)}
                   className="px-4 py-2 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center gap-2"
                 >
                   <FaEnvelope /> Contact Seller
-                </a>
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2">
+                </button>
+                <button
+                  onClick={() =>
+                    navigate(
+                      `/profile?user=${encodeURIComponent(product.sellerEmail)}`,
+                    )
+                  }
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2"
+                >
                   <FaUser /> View Profile
                 </button>
               </div>
@@ -528,6 +557,110 @@ const ProductDetails = () => {
           </div>
         )}
       </div>
+
+      {/* Contact Seller Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-teal-600 to-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center justify-between">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FaPhone /> Contact Seller
+              </h2>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center hover:pointer cursor-pointer transition-colors"
+              >
+                <FaTimes className="text-red-500" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold">
+                  {(product.sellerName || "S").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    {product.sellerName || "Anonymous Seller"}
+                  </h3>
+                  <p className="text-sm text-gray-500">{product.sellerEmail}</p>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                    Contact Number
+                  </h4>
+                  {sellerProfile?.sellingContactNumber ? (
+                    <a
+                      href={`tel:${sellerProfile.sellingContactNumber}`}
+                      className="flex items-center gap-3 text-lg font-bold text-teal-600 hover:text-teal-700 transition-colors"
+                    >
+                      <FaPhone className="text-2xl" />
+                      {sellerProfile.sellingContactNumber}
+                    </a>
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      Seller has not provided a contact number
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                    Email Address
+                  </h4>
+                  <a
+                    href={`mailto:${product.sellerEmail}`}
+                    className="flex items-center gap-3 text-teal-600 hover:text-teal-700 transition-colors break-all"
+                  >
+                    <FaEnvelope className="text-xl flex-shrink-0" />
+                    {product.sellerEmail}
+                  </a>
+                </div>
+
+                {sellerProfile?.address && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                      Location
+                    </h4>
+                    <div className="flex items-start gap-3 text-gray-700">
+                      <FaMapMarkerAlt className="text-teal-600 text-xl flex-shrink-0 mt-1" />
+                      <div>
+                        <p className="font-medium">
+                          {sellerProfile.address.locationType}
+                        </p>
+                        {sellerProfile.address.customAddress && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            {sellerProfile.address.customAddress}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* View Profile Button */}
+              <button
+                onClick={() => {
+                  setShowContactModal(false);
+                  navigate(
+                    `/profile?user=${encodeURIComponent(product.sellerEmail)}`,
+                  );
+                }}
+                className="w-full mt-6 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-teal-600 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <FaUser /> View Full Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
