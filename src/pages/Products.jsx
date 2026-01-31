@@ -501,6 +501,11 @@ const Products = () => {
                       <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                         {product.condition}
                       </span>
+                      {product.stock !== undefined && product.stock <= 0 && (
+                        <span className="absolute top-2 right-12 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                          Out of Stock
+                        </span>
+                      )}
                       {product.rating !== undefined && product.rating >= 0 && (
                         <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
                           <FaStar className="text-yellow-400 text-xs" />
@@ -546,16 +551,25 @@ const Products = () => {
                           )}
                           <button
                             onClick={(e) => handleAddToCart(e, product)}
-                            disabled={isInCart(product._id)}
+                            disabled={
+                              isInCart(product._id) ||
+                              (product.stock !== undefined &&
+                                product.stock <= 0)
+                            }
                             className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
-                              isInCart(product._id)
-                                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                : addedProductId === product._id
-                                  ? "bg-green-500 text-white"
-                                  : "bg-teal-600 text-white hover:bg-teal-700"
+                              product.stock !== undefined && product.stock <= 0
+                                ? "bg-red-100 text-red-600 cursor-not-allowed"
+                                : isInCart(product._id)
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : addedProductId === product._id
+                                    ? "bg-green-500 text-white"
+                                    : "bg-teal-600 text-white hover:bg-teal-700"
                             }`}
                           >
-                            {isInCart(product._id) ? (
+                            {product.stock !== undefined &&
+                            product.stock <= 0 ? (
+                              "Out of Stock"
+                            ) : isInCart(product._id) ? (
                               <>
                                 <FaCheckCircle /> In Cart
                               </>
@@ -608,6 +622,11 @@ const Products = () => {
                         <span className="absolute bottom-2 left-2 bg-teal-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
                           {product.condition}
                         </span>
+                        {product.stock !== undefined && product.stock <= 0 && (
+                          <span className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                            Out of Stock
+                          </span>
+                        )}
                         {product.rating !== undefined &&
                           product.rating >= 0 && (
                             <div className="absolute bottom-2 right-2 bg-white px-2 py-1 rounded-full flex items-center gap-1 shadow-md">
@@ -677,16 +696,26 @@ const Products = () => {
                             )}
                             <button
                               onClick={(e) => handleAddToCart(e, product)}
-                              disabled={isInCart(product._id)}
+                              disabled={
+                                isInCart(product._id) ||
+                                (product.stock !== undefined &&
+                                  product.stock <= 0)
+                              }
                               className={`px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                                isInCart(product._id)
-                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                  : addedProductId === product._id
-                                    ? "bg-green-500 text-white"
-                                    : "bg-teal-600 text-white hover:bg-teal-700"
+                                product.stock !== undefined &&
+                                product.stock <= 0
+                                  ? "bg-red-100 text-red-600 cursor-not-allowed"
+                                  : isInCart(product._id)
+                                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                    : addedProductId === product._id
+                                      ? "bg-green-500 text-white"
+                                      : "bg-teal-600 text-white hover:bg-teal-700"
                               }`}
                             >
-                              {isInCart(product._id) ? (
+                              {product.stock !== undefined &&
+                              product.stock <= 0 ? (
+                                "Out of Stock"
+                              ) : isInCart(product._id) ? (
                                 <>
                                   <FaCheckCircle /> In Cart
                                 </>

@@ -578,7 +578,8 @@ const Orders = () => {
                         >
                           <FaEye /> View Details
                         </button>
-                        {order.status !== "Delivered" &&
+                        {order.status !== "Shipped" &&
+                          order.status !== "Delivered" &&
                           order.status !== "Cancelled" && (
                             <button
                               onClick={() => handleCancelOrder(order._id)}

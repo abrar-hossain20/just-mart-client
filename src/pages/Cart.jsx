@@ -50,6 +50,28 @@ const Cart = () => {
       return;
     }
 
+    // Check if any items are out of stock
+    const outOfStockItems = cart.filter(
+      (item) => item.stock !== undefined && item.stock <= 0,
+    );
+    if (outOfStockItems.length > 0) {
+      alert(
+        `Cannot place order. The following items are out of stock: ${outOfStockItems.map((item) => item.title).join(", ")}. Please remove them from your cart.`,
+      );
+      return;
+    }
+
+    // Check if any items exceed available stock
+    const exceededStockItems = cart.filter(
+      (item) => item.stock !== undefined && item.quantity > item.stock,
+    );
+    if (exceededStockItems.length > 0) {
+      alert(
+        `Cannot place order. You have more items in cart than available stock for: ${exceededStockItems.map((item) => item.title).join(", ")}`,
+      );
+      return;
+    }
+
     // Check if user has buying contact number
     if (!userProfile?.buyingContactNumber) {
       if (
@@ -183,6 +205,11 @@ const Cart = () => {
                           {item.category} • {item.condition}
                         </p>
                         <p className="text-sm text-gray-500">{item.location}</p>
+                        {(item.stock === undefined || item.stock <= 0) && (
+                          <p className="text-sm font-semibold text-red-600 mt-1 bg-red-50 px-2 py-1 rounded inline-block">
+                            Out of Stock
+                          </p>
+                        )}
                       </div>
                       <button
                         onClick={() => removeFromCart(item._id)}
@@ -201,8 +228,11 @@ const Cart = () => {
                             onClick={() =>
                               updateQuantity(item._id, item.quantity - 1)
                             }
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                            disabled={item.quantity <= 1}
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={
+                              item.quantity <= 1 ||
+                              (item.stock !== undefined && item.stock <= 0)
+                            }
                           >
                             <FaMinus className="text-sm" />
                           </button>
@@ -215,19 +245,25 @@ const Cart = () => {
                             }
                             className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={
-                              item.stock > 0 && item.quantity >= item.stock
+                              (item.stock !== undefined && item.stock <= 0) ||
+                              (item.stock !== undefined &&
+                                item.quantity >= item.stock)
                             }
                           >
                             <FaPlus className="text-sm" />
                           </button>
                         </div>
-                        {item.stock > 0 && (
+                        {item.stock !== undefined && item.stock > 0 ? (
                           <p className="text-xs text-gray-500 text-center">
                             {item.stock - item.quantity > 0
                               ? `${item.stock - item.quantity} left in stock`
                               : "Max stock reached"}
                           </p>
-                        )}
+                        ) : item.stock !== undefined && item.stock <= 0 ? (
+                          <p className="text-xs text-red-600 font-semibold text-center">
+                            Out of Stock
+                          </p>
+                        ) : null}
                       </div>
 
                       {/* Price */}

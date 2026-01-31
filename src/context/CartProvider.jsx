@@ -61,9 +61,15 @@ const CartProvider = ({ children }) => {
     // Check stock before adding
     const existingItem = cart.find((item) => item._id === product._id);
     const currentQuantity = existingItem ? existingItem.quantity : 0;
-    const productStock = product.stock || 0;
+    const productStock = product.stock !== undefined ? product.stock : 0;
 
-    if (productStock > 0 && currentQuantity >= productStock) {
+    // Prevent adding if product is out of stock
+    if (productStock <= 0) {
+      alert(`Sorry, "${product.title}" is out of stock.`);
+      return;
+    }
+
+    if (currentQuantity >= productStock) {
       alert(`Cannot add more. Only ${productStock} items available in stock.`);
       return;
     }
@@ -132,9 +138,14 @@ const CartProvider = ({ children }) => {
 
     // Check stock before updating quantity
     const product = cart.find((item) => item._id === productId);
-    const productStock = product?.stock || 0;
+    const productStock = product?.stock !== undefined ? product.stock : 0;
 
-    if (productStock > 0 && quantity > productStock) {
+    if (productStock <= 0) {
+      alert(`This item is out of stock.`);
+      return;
+    }
+
+    if (quantity > productStock) {
       alert(`Cannot add more. Only ${productStock} items available in stock.`);
       return;
     }

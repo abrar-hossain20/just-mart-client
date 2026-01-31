@@ -285,7 +285,11 @@ const Home = () => {
               >
                 <div className="relative">
                   <img
-                    src={product.image}
+                    src={
+                      product.images?.[0] ||
+                      product.image ||
+                      "https://via.placeholder.com/300x200"
+                    }
                     alt={product.title}
                     className="w-full h-48 object-cover"
                   />
@@ -420,7 +424,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
     </div>
   );
 };
