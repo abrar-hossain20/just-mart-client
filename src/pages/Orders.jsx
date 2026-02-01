@@ -110,12 +110,36 @@ const Orders = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
+      let cancellationReason = null;
+      
+      // If cancelling, ask for reason
+      if (newStatus === "Cancelled") {
+        cancellationReason = window.prompt(
+          "Please provide a reason for cancelling this order:"
+        );
+        
+        if (cancellationReason === null) {
+          // User clicked cancel
+          return;
+        }
+        
+        if (!cancellationReason || cancellationReason.trim() === "") {
+          alert("Cancellation reason is required");
+          return;
+        }
+      }
+
+      const requestBody = { status: newStatus };
+      if (cancellationReason) {
+        requestBody.cancellationReason = cancellationReason.trim();
+      }
+
       const response = await fetch(API_ENDPOINTS.ORDER_STATUS(orderId), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
