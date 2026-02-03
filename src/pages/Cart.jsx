@@ -22,6 +22,8 @@ const Cart = () => {
   const [orderId, setOrderId] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [checkingProfile, setCheckingProfile] = useState(true);
+  const [deliveryLocation, setDeliveryLocation] = useState("campus");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
 
   React.useEffect(() => {
     if (user) {
@@ -47,6 +49,12 @@ const Cart = () => {
   const handlePlaceOrder = async () => {
     if (!user) {
       navigate("/signin", { state: { from: "/cart" } });
+      return;
+    }
+
+    // Check if delivery address is provided
+    if (!deliveryAddress.trim()) {
+      alert("Please enter your delivery address");
       return;
     }
 
@@ -87,9 +95,11 @@ const Cart = () => {
     setIsPlacingOrder(true);
 
     try {
+      const deliveryFee = deliveryLocation === "city" ? 20 : 0;
       const orderData = {
         buyerEmail: user.email,
         buyerName: user.displayName || user.email,
+        buyerContactNumber: userProfile?.buyingContactNumber,
         items: cart.map((item) => ({
           productId: item._id,
           title: item.title,
@@ -101,8 +111,10 @@ const Cart = () => {
           sellerEmail: item.sellerEmail,
           sellerName: item.sellerName,
         })),
-        totalAmount: getCartTotal(),
-        deliveryFee: 0,
+        totalAmount: getCartTotal() + deliveryFee,
+        deliveryFee: deliveryFee,
+        deliveryLocation: deliveryLocation,
+        deliveryAddress: deliveryAddress,
         status: "Pending",
         paymentStatus: "Cash on Delivery",
       };
@@ -306,21 +318,108 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Fee</span>
-                  <span className="text-green-600 font-semibold">Free</span>
+                  <span
+                    className={
+                      deliveryLocation === "city"
+                        ? "text-gray-900 font-semibold"
+                        : "text-green-600 font-semibold"
+                    }
+                  >
+                    {deliveryLocation === "city" ? "৳20" : "Free"}
+                  </span>
                 </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between text-lg font-bold text-gray-900">
                     <span>Total</span>
                     <span className="text-teal-600">
-                      ৳{getCartTotal().toLocaleString()}
+                      ৳
+                      {(
+                        getCartTotal() + (deliveryLocation === "city" ? 20 : 0)
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>
               </div>
 
+              {/* Delivery Address Section */}
+              <div className="mb-6 pb-6 border-b">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Delivery Information
+                </h3>
+
+                {/* Delivery Location Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Location
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="deliveryLocation"
+                        value="campus"
+                        checked={deliveryLocation === "campus"}
+                        onChange={(e) => setDeliveryLocation(e.target.value)}
+                        className="w-4 h-4 text-teal-600 focus:ring-teal-500"
+                      />
+                      <div className="ml-3 flex-1">
+                        <span className="font-medium text-gray-900">
+                          Campus Delivery
+                        </span>
+                        <span className="ml-2 text-sm text-green-600 font-semibold">
+                          FREE
+                        </span>
+                      </div>
+                    </label>
+                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="deliveryLocation"
+                        value="city"
+                        checked={deliveryLocation === "city"}
+                        onChange={(e) => setDeliveryLocation(e.target.value)}
+                        className="w-4 h-4 text-teal-600 focus:ring-teal-500"
+                      />
+                      <div className="ml-3 flex-1">
+                        <span className="font-medium text-gray-900">
+                          City Delivery
+                        </span>
+                        <span className="ml-2 text-sm text-gray-600">
+                          + ৳20
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Delivery Address Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Address <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    placeholder={
+                      deliveryLocation === "campus"
+                        ? "Enter your campus address (e.g., Hall name, Room number)"
+                        : "Enter your city address (e.g., Palbari, Doratana )"
+                    }
+                    rows="3"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+                    required
+                  />
+                  {deliveryLocation === "city" && (
+                    <p className="mt-1 text-xs text-amber-600">
+                      ⓘ Additional ৳20 delivery charge applies for city delivery
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <button
                 onClick={handlePlaceOrder}
-                disabled={isPlacingOrder}
+                disabled={isPlacingOrder || !deliveryAddress.trim()}
                 className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPlacingOrder ? "Placing Order..." : "Place Order"}

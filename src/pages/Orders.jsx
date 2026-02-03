@@ -31,7 +31,10 @@ const Orders = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [viewMode, setViewMode] = useState("seller"); // "seller" or "buyer"
+  const [viewMode, setViewMode] = useState(() => {
+    // Restore viewMode from localStorage, default to "buyer"
+    return localStorage.getItem("ordersViewMode") || "buyer";
+  });
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [ratingProduct, setRatingProduct] = useState(null);
   const [ratingValue, setRatingValue] = useState(0);
@@ -111,18 +114,18 @@ const Orders = () => {
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
       let cancellationReason = null;
-      
+
       // If cancelling, ask for reason
       if (newStatus === "Cancelled") {
         cancellationReason = window.prompt(
-          "Please provide a reason for cancelling this order:"
+          "Please provide a reason for cancelling this order:",
         );
-        
+
         if (cancellationReason === null) {
           // User clicked cancel
           return;
         }
-        
+
         if (!cancellationReason || cancellationReason.trim() === "") {
           alert("Cancellation reason is required");
           return;
@@ -327,7 +330,10 @@ const Orders = () => {
           {/* View Mode Toggle */}
           <div className="mt-6 flex gap-2">
             <button
-              onClick={() => setViewMode("buyer")}
+              onClick={() => {
+                setViewMode("buyer");
+                localStorage.setItem("ordersViewMode", "buyer");
+              }}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
                 viewMode === "buyer"
                   ? "bg-white text-teal-600"
@@ -337,7 +343,10 @@ const Orders = () => {
               My Orders (Buyer)
             </button>
             <button
-              onClick={() => setViewMode("seller")}
+              onClick={() => {
+                setViewMode("seller");
+                localStorage.setItem("ordersViewMode", "seller");
+              }}
               className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
                 viewMode === "seller"
                   ? "bg-white text-teal-600"
@@ -723,13 +732,15 @@ const Orders = () => {
                         </p>
                       </div>
                     </div>
-                    {selectedOrder.buyerPhone && (
+                    {selectedOrder.buyerContactNumber && (
                       <div className="flex items-center gap-2 text-gray-700">
                         <FaPhone className="text-green-500 text-xl" />
                         <div>
-                          <p className="text-xs text-gray-500">Phone</p>
+                          <p className="text-xs text-gray-500">
+                            Contact Number
+                          </p>
                           <p className="font-semibold">
-                            {selectedOrder.buyerPhone}
+                            {selectedOrder.buyerContactNumber}
                           </p>
                         </div>
                       </div>
