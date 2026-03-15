@@ -146,6 +146,7 @@ const MyProfile = () => {
         setIsEditing(false);
         // Refetch the profile to confirm it was saved
         await fetchProfile();
+        window.dispatchEvent(new Event("profile-updated"));
       } else {
         const error = await response.json();
         toast.error(error.message || "Failed to update profile");
@@ -401,7 +402,7 @@ const MyProfile = () => {
                         className="w-4 h-4 text-teal-600 focus:ring-teal-500"
                       />
                       <span className="ml-3 font-medium text-gray-700">
-                        Near Campus
+                        Near Campus (Within 1 km)
                       </span>
                     </label>
 

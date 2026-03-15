@@ -51,6 +51,18 @@ const Navbar = () => {
     };
 
     fetchSellerProfile();
+
+    const handleProfileUpdated = () => {
+      fetchSellerProfile();
+    };
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    window.addEventListener("focus", handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener("profile-updated", handleProfileUpdated);
+      window.removeEventListener("focus", handleProfileUpdated);
+    };
   }, [user]);
 
   const handleLogout = () => {
