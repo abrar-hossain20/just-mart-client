@@ -33,9 +33,19 @@ const AuthProvider = ({ children }) => {
     });
   };
 
-  const sendEmailVerificationFunc = () => {
+  const sendEmailVerificationFunc = async () => {
     setLoading(true);
-    return sendEmailVerification(auth.currentUser);
+
+    if (!auth.currentUser) {
+      setLoading(false);
+      throw new Error("No authenticated user found for email verification.");
+    }
+
+    try {
+      return await sendEmailVerification(auth.currentUser);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signInWithEmailAndPasswordFunc = (email, password) => {
@@ -73,6 +83,11 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currUser) => {
       console.log(currUser);
+      if (currUser && !currUser.emailVerified) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
       setUser(currUser);
       setLoading(false);
     });

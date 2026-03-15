@@ -17,7 +17,7 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  if (!user) {
+  if (!user || !user.emailVerified) {
     return (
       <Navigate to="/signin" state={location.pathname + location.search} />
     );

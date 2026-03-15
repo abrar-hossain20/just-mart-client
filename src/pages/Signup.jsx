@@ -20,16 +20,8 @@ const Signup = () => {
   const handleSignup = (e) => {
     e.preventDefault();
     const displayName = e.target.name?.value;
-    const photoURL = e.target.photo?.value;
     const email = e.target.email?.value;
     const password = e.target.password?.value;
-
-    console.log("signup function entered", {
-      email,
-      displayName,
-      photoURL,
-      password,
-    });
 
     // Password validation
     // Must have an uppercase letter, a lowercase letter, length must be at least 6 characters
@@ -56,7 +48,7 @@ const Signup = () => {
     createUserWithEmailAndPasswordFunc(email, password)
       .then((res) => {
         // 2nd step: Update profile
-        updateProfileFunc(displayName, photoURL)
+        updateProfileFunc(displayName, "")
           .then(() => {
             console.log(res);
             // 3rd step: Email verification
@@ -67,9 +59,7 @@ const Signup = () => {
 
                 // Signout user
                 signoutUserFunc().then(() => {
-                  toast.success(
-                    "Signup successful. Check your email to validate your account. "
-                  );
+                  toast.success("Please verify your email to log in.");
                   setUser(null);
                   navigate("/signin");
                 });
@@ -89,7 +79,7 @@ const Signup = () => {
         console.log(e.code);
         if (e.code === "auth/email-already-in-use") {
           toast.error(
-            "This email is already registered. Please login instead."
+            "This email is already registered. Please login instead.",
           );
         } else if (e.code === "auth/weak-password") {
           toast.error("Password must be at least 6 characters long.");
@@ -111,7 +101,7 @@ const Signup = () => {
             Create Account
           </h2>
           <p className="text-gray-600 text-sm">
-            Join our community and start making a difference
+            Join our community using only university email address!
           </p>
         </div>
 
@@ -139,21 +129,7 @@ const Signup = () => {
               type="email"
               name="email"
               required
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm transition-colors duration-300 outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Photo URL Input */}
-          <div className="mb-5">
-            <label className="block mb-2 text-gray-800 text-sm font-semibold">
-              Photo URL
-            </label>
-            <input
-              type="url"
-              name="photo"
-              required
-              placeholder="Enter your photo URL"
+              placeholder="Enter your educational email address"
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm transition-colors duration-300 outline-none focus:border-indigo-500"
             />
           </div>
