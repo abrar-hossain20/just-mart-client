@@ -23,6 +23,15 @@ const Signup = () => {
     const email = e.target.email?.value;
     const password = e.target.password?.value;
 
+    // Email domain validation - only allow student.just.edu.bd
+    const validEmailDomain = "@student.just.edu.bd";
+    if (!email.endsWith(validEmailDomain)) {
+      toast.error(
+        "Please use your university email address (e.g., your_roll.department@student.just.edu.bd)",
+      );
+      return;
+    }
+
     // Password validation
     // Must have an uppercase letter, a lowercase letter, length must be at least 6 characters
     if (password.length < 6) {
@@ -132,6 +141,9 @@ const Signup = () => {
               placeholder="Enter your educational email address"
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm transition-colors duration-300 outline-none focus:border-indigo-500"
             />
+            <p className="text-xs text-gray-600 mt-1.5 leading-snug">
+              Email must be in the format: your_roll.department@student.just.edu.bd
+            </p>
           </div>
 
           {/* Password Input */}
