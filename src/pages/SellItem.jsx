@@ -23,7 +23,6 @@ const SellItem = () => {
     price: "",
     category: "",
     condition: "New",
-    location: "",
     stock: 1,
     tags: [],
     images: [],
@@ -81,7 +80,6 @@ const SellItem = () => {
         price: product.price || "",
         category: product.category || "",
         condition: product.condition || "New",
-        location: product.location || "",
         stock: product.stock || 1,
         tags: product.tags || [],
         images: product.images || [],
@@ -197,9 +195,7 @@ const SellItem = () => {
     if (!formData.category) {
       newErrors.category = "Category is required";
     }
-    if (!formData.location.trim()) {
-      newErrors.location = "Location is required";
-    }
+    
     if (formData.images.length === 0) {
       newErrors.images = "At least one image is required";
     }
@@ -471,27 +467,7 @@ const SellItem = () => {
               </div>
             </div>
 
-            {/* Location */}
-            <div className="mb-6">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Location *
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                placeholder="e.g., Dhaka, Bangladesh"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.location
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-blue-500"
-                }`}
-              />
-              {errors.location && (
-                <p className="text-red-500 text-sm mt-1">{errors.location}</p>
-              )}
-            </div>
+           
 
             {/* Tags */}
             <div className="mb-6">

@@ -20,32 +20,9 @@ const Cart = () => {
   const navigate = useNavigate();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [orderId, setOrderId] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [checkingProfile, setCheckingProfile] = useState(true);
   const [deliveryLocation, setDeliveryLocation] = useState("campus");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
-
-  React.useEffect(() => {
-    if (user) {
-      fetchUserProfile();
-    }
-  }, [user]);
-
-  const fetchUserProfile = async () => {
-    try {
-      setCheckingProfile(true);
-      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
-      if (response.ok) {
-        const data = await response.json();
-        setUserProfile(data.profile);
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setCheckingProfile(false);
-    }
-  };
+  const [cityDeliveryArea, setCityDeliveryArea] = useState("");
+  const [deliveryContactNumber, setDeliveryContactNumber] = useState("");
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -53,9 +30,23 @@ const Cart = () => {
       return;
     }
 
-    // Check if delivery address is provided
-    if (!deliveryAddress.trim()) {
-      toast.error("Please enter your delivery address");
+    if (deliveryLocation === "city" && !cityDeliveryArea) {
+      toast.error("Please select a city delivery area");
+      return;
+    }
+
+    if (!deliveryContactNumber.trim()) {
+      toast.error("Please enter your contact number");
+      return;
+    }
+
+    const sanitizedContactNumber = deliveryContactNumber.replace(
+      /[\s()-]/g,
+      "",
+    );
+    const phoneRegex = /^[0-9]{10,15}$/;
+    if (!phoneRegex.test(sanitizedContactNumber)) {
+      toast.error("Please enter a valid contact number (10-15 digits)");
       return;
     }
 
@@ -81,26 +72,15 @@ const Cart = () => {
       return;
     }
 
-    // Check if user has buying contact number
-    if (!userProfile?.buyingContactNumber) {
-      if (
-        window.confirm(
-          "You need to add a buying contact number to purchase products. Would you like to update your profile now?",
-        )
-      ) {
-        navigate("/profile");
-      }
-      return;
-    }
-
     setIsPlacingOrder(true);
 
     try {
       const deliveryFee = deliveryLocation === "city" ? 20 : 0;
+
       const orderData = {
         buyerEmail: user.email,
         buyerName: user.displayName || user.email,
-        buyerContactNumber: userProfile?.buyingContactNumber,
+        buyerContactNumber: sanitizedContactNumber,
         items: cart.map((item) => ({
           productId: item._id,
           title: item.title,
@@ -115,7 +95,8 @@ const Cart = () => {
         totalAmount: getCartTotal() + deliveryFee,
         deliveryFee: deliveryFee,
         deliveryLocation: deliveryLocation,
-        deliveryAddress: deliveryAddress,
+        deliveryCityArea: deliveryLocation === "city" ? cityDeliveryArea : "",
+        deliveryContactNumber: sanitizedContactNumber,
         status: "Pending",
         paymentStatus: "Cash on Delivery",
       };
@@ -132,8 +113,7 @@ const Cart = () => {
         throw new Error("Failed to place order");
       }
 
-      const result = await response.json();
-      setOrderId(result.orderId);
+      await response.json();
       clearCart();
       setShowSuccessModal(true);
     } catch (error) {
@@ -360,7 +340,10 @@ const Cart = () => {
                         name="deliveryLocation"
                         value="campus"
                         checked={deliveryLocation === "campus"}
-                        onChange={(e) => setDeliveryLocation(e.target.value)}
+                        onChange={(e) => {
+                          setDeliveryLocation(e.target.value);
+                          setCityDeliveryArea("");
+                        }}
                         className="w-4 h-4 text-teal-600 focus:ring-teal-500"
                       />
                       <div className="ml-3 flex-1">
@@ -391,36 +374,50 @@ const Cart = () => {
                       </div>
                     </label>
                   </div>
+
+                  {deliveryLocation === "city" && (
+                    <div className="mt-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Select City Area <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={cityDeliveryArea}
+                        onChange={(e) => setCityDeliveryArea(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      >
+                        <option value="">Choose area</option>
+                        <option value="Palbari">Palbari</option>
+                        <option value="Doratana">Doratana</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
-                {/* Delivery Address Input */}
+                {/* Contact Number Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Delivery Address <span className="text-red-500">*</span>
+                    Contact Number <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder={
-                      deliveryLocation === "campus"
-                        ? "Enter your campus address (e.g., Hall name, Room number)"
-                        : "Enter your city address (e.g., Palbari, Doratana )"
-                    }
-                    rows="3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
-                    required
+                  <input
+                    type="tel"
+                    value={deliveryContactNumber}
+                    onChange={(e) => setDeliveryContactNumber(e.target.value)}
+                    placeholder="Enter your contact number"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
-                  {deliveryLocation === "city" && (
-                    <p className="mt-1 text-xs text-amber-600">
-                      ⓘ Additional ৳20 delivery charge applies for city delivery
-                    </p>
-                  )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Required: 10-15 digits
+                  </p>
                 </div>
               </div>
 
               <button
                 onClick={handlePlaceOrder}
-                disabled={isPlacingOrder || !deliveryAddress.trim()}
+                disabled={
+                  isPlacingOrder ||
+                  !deliveryContactNumber.trim() ||
+                  (deliveryLocation === "city" && !cityDeliveryArea)
+                }
                 className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isPlacingOrder ? "Placing Order..." : "Place Order"}
