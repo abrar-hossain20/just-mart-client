@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { CartContext } from "./CartContext";
 import { AuthContext } from "./AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 
 const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
@@ -65,12 +66,14 @@ const CartProvider = ({ children }) => {
 
     // Prevent adding if product is out of stock
     if (productStock <= 0) {
-      alert(`Sorry, "${product.title}" is out of stock.`);
+      toast.error(`Sorry, "${product.title}" is out of stock.`);
       return;
     }
 
     if (currentQuantity >= productStock) {
-      alert(`Cannot add more. Only ${productStock} items available in stock.`);
+      toast.error(
+        `Cannot add more. Only ${productStock} items available in stock.`,
+      );
       return;
     }
 
@@ -141,12 +144,14 @@ const CartProvider = ({ children }) => {
     const productStock = product?.stock !== undefined ? product.stock : 0;
 
     if (productStock <= 0) {
-      alert(`This item is out of stock.`);
+      toast.error("This item is out of stock.");
       return;
     }
 
     if (quantity > productStock) {
-      alert(`Cannot add more. Only ${productStock} items available in stock.`);
+      toast.error(
+        `Cannot add more. Only ${productStock} items available in stock.`,
+      );
       return;
     }
 

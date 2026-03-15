@@ -1,8 +1,10 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
+import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 import {
   FaUserCircle,
   FaShoppingCart,
@@ -19,7 +21,37 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [checkingSellerInfo, setCheckingSellerInfo] = useState(false);
+  const [hasSellerInfo, setHasSellerInfo] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchSellerProfile = async () => {
+      if (!user?.email) {
+        setHasSellerInfo(false);
+        setCheckingSellerInfo(false);
+        return;
+      }
+
+      try {
+        setCheckingSellerInfo(true);
+        const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+        if (!response.ok) {
+          throw new Error("Failed to fetch seller profile");
+        }
+        const data = await response.json();
+        const sellerContact = data?.profile?.sellingContactNumber?.trim();
+        setHasSellerInfo(Boolean(sellerContact));
+      } catch (error) {
+        console.error("Error fetching seller profile:", error);
+        setHasSellerInfo(false);
+      } finally {
+        setCheckingSellerInfo(false);
+      }
+    };
+
+    fetchSellerProfile();
+  }, [user]);
 
   const handleLogout = () => {
     signoutUserFunc()
@@ -39,6 +71,13 @@ const Navbar = () => {
       setSearchQuery("");
       setShowMobileMenu(false);
     }
+  };
+
+  const handleSellerInfoRequired = () => {
+    toast.info(
+      "Please add a selling contact number in your profile to activate Sell Item.",
+    );
+    navigate("/profile");
   };
 
   return (
@@ -82,12 +121,33 @@ const Navbar = () => {
             >
               Browse Products
             </Link>
-            <Link
-              to="/sell"
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
-            >
-              Sell Item
-            </Link>
+            {user ? (
+              hasSellerInfo ? (
+                <Link
+                  to="/sell"
+                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+                >
+                  Sell Item
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSellerInfoRequired}
+                  disabled={checkingSellerInfo}
+                  title="Add selling contact number in profile to activate"
+                  className="text-gray-400 font-medium transition-colors duration-200 disabled:cursor-not-allowed"
+                >
+                  Sell Item
+                </button>
+              )
+            ) : (
+              <Link
+                to="/sell"
+                className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+              >
+                Sell Item
+              </Link>
+            )}
 
             {/* Wishlist Icon */}
             <Link
@@ -236,13 +296,37 @@ const Navbar = () => {
             >
               Browse Products
             </Link>
-            <Link
-              to="/sell"
-              onClick={() => setShowMobileMenu(false)}
-              className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
-            >
-              Sell Item
-            </Link>
+            {user ? (
+              hasSellerInfo ? (
+                <Link
+                  to="/sell"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+                >
+                  Sell Item
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMobileMenu(false);
+                    handleSellerInfoRequired();
+                  }}
+                  disabled={checkingSellerInfo}
+                  className="block text-gray-400 font-medium transition-colors duration-200 disabled:cursor-not-allowed"
+                >
+                  Sell Item
+                </button>
+              )
+            ) : (
+              <Link
+                to="/sell"
+                onClick={() => setShowMobileMenu(false)}
+                className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+              >
+                Sell Item
+              </Link>
+            )}
             <Link
               to="/cart"
               onClick={() => setShowMobileMenu(false)}

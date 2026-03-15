@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 import {
   FaBox,
   FaShippingFast,
@@ -103,11 +104,11 @@ const Orders = () => {
         ),
       );
 
-      alert("Order cancelled successfully!");
+      toast.success("Order cancelled successfully!");
       fetchOrders(); // Refresh orders
     } catch (error) {
       console.error("Error cancelling order:", error);
-      alert(error.message || "Failed to cancel order. Please try again.");
+      toast.error(error.message || "Failed to cancel order. Please try again.");
     }
   };
 
@@ -127,7 +128,7 @@ const Orders = () => {
         }
 
         if (!cancellationReason || cancellationReason.trim() === "") {
-          alert("Cancellation reason is required");
+          toast.error("Cancellation reason is required");
           return;
         }
       }
@@ -161,10 +162,10 @@ const Orders = () => {
         ),
       );
 
-      alert("Order status updated successfully!");
+      toast.success("Order status updated successfully!");
     } catch (error) {
       console.error("Error updating order status:", error);
-      alert("Failed to update order status. Please try again.");
+      toast.error("Failed to update order status. Please try again.");
     }
   };
 
@@ -248,7 +249,7 @@ const Orders = () => {
 
   const handleRatingSubmit = async () => {
     if (ratingValue === 0) {
-      alert("Please select a rating");
+      toast.error("Please select a rating");
       return;
     }
 
@@ -277,12 +278,14 @@ const Orders = () => {
 
       const result = await response.json();
       console.log("Rating submitted successfully:", result);
-      alert("Rating submitted successfully!");
+      toast.success("Rating submitted successfully!");
       closeRatingModal();
       fetchOrders(); // Refresh orders to update rating status
     } catch (error) {
       console.error("Error submitting rating:", error);
-      alert(error.message || "Failed to submit rating. Please try again.");
+      toast.error(
+        error.message || "Failed to submit rating. Please try again.",
+      );
     } finally {
       setSubmittingRating(false);
     }
@@ -590,7 +593,7 @@ const Orders = () => {
                                 `/profile?user=${encodeURIComponent(buyerEmail)}`,
                               );
                             } else {
-                              alert("Buyer information not available");
+                              toast.error("Buyer information not available");
                             }
                           }}
                           className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center gap-2"
@@ -629,7 +632,7 @@ const Orders = () => {
                                 `/profile?user=${encodeURIComponent(sellerEmail)}`,
                               );
                             } else {
-                              alert("Seller information not available");
+                              toast.error("Seller information not available");
                             }
                           }}
                           className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg font-semibold hover:bg-teal-200 transition-colors flex items-center gap-2"

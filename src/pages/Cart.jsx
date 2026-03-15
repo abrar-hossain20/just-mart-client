@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 import {
   FaTrash,
   FaMinus,
@@ -54,7 +55,7 @@ const Cart = () => {
 
     // Check if delivery address is provided
     if (!deliveryAddress.trim()) {
-      alert("Please enter your delivery address");
+      toast.error("Please enter your delivery address");
       return;
     }
 
@@ -63,7 +64,7 @@ const Cart = () => {
       (item) => item.stock !== undefined && item.stock <= 0,
     );
     if (outOfStockItems.length > 0) {
-      alert(
+      toast.error(
         `Cannot place order. The following items are out of stock: ${outOfStockItems.map((item) => item.title).join(", ")}. Please remove them from your cart.`,
       );
       return;
@@ -74,7 +75,7 @@ const Cart = () => {
       (item) => item.stock !== undefined && item.quantity > item.stock,
     );
     if (exceededStockItems.length > 0) {
-      alert(
+      toast.error(
         `Cannot place order. You have more items in cart than available stock for: ${exceededStockItems.map((item) => item.title).join(", ")}`,
       );
       return;
@@ -137,7 +138,7 @@ const Cart = () => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Failed to place order. Please try again.");
+      toast.error("Failed to place order. Please try again.");
     } finally {
       setIsPlacingOrder(false);
     }

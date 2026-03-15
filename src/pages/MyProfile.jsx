@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 import {
   FaUserCircle,
   FaPhone,
@@ -141,17 +142,17 @@ const MyProfile = () => {
       });
 
       if (response.ok) {
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         setIsEditing(false);
         // Refetch the profile to confirm it was saved
         await fetchProfile();
       } else {
         const error = await response.json();
-        alert(error.message || "Failed to update profile");
+        toast.error(error.message || "Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Error updating profile");
+      toast.error("Error updating profile");
     } finally {
       setSaving(false);
     }

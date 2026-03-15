@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { FaUpload, FaImage, FaTimes, FaPlus, FaSpinner } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const SellItem = () => {
   const { user } = useContext(AuthContext);
@@ -67,7 +68,7 @@ const SellItem = () => {
 
       // Check if the user owns this product
       if (product.sellerEmail !== user?.email) {
-        alert("You don't have permission to edit this product");
+        toast.error("You don't have permission to edit this product");
         navigate("/my-products");
         return;
       }
@@ -89,7 +90,7 @@ const SellItem = () => {
       setLoadingProduct(false);
     } catch (error) {
       console.error("Error fetching product:", error);
-      alert("Failed to load product for editing");
+      toast.error("Failed to load product for editing");
       navigate("/my-products");
       setLoadingProduct(false);
     }
@@ -256,7 +257,7 @@ const SellItem = () => {
           throw new Error("Failed to update product");
         }
 
-        alert("Product updated successfully!");
+        toast.success("Product updated successfully!");
         navigate(`/product/${editId}`);
       } else {
         // Create new product
@@ -277,12 +278,12 @@ const SellItem = () => {
         }
 
         const result = await response.json();
-        alert("Product created successfully!");
+        toast.success("Product created successfully!");
         navigate(`/product/${result.productId}`);
       }
     } catch (error) {
       console.error("Error saving product:", error);
-      alert(
+      toast.error(
         `Failed to ${isEditMode ? "update" : "create"} product. Please try again.`,
       );
     } finally {

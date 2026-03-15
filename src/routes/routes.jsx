@@ -13,6 +13,7 @@ import MyProfile from "../pages/MyProfile";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import PrivateRoute from "../privateRoute/PrivateRoute";
+import SellerRoute from "../privateRoute/SellerRoute";
 
 export const router = createBrowserRouter([
   {
@@ -71,7 +72,9 @@ export const router = createBrowserRouter([
         path: "/sell",
         element: (
           <PrivateRoute>
-            <SellItem></SellItem>
+            <SellerRoute>
+              <SellItem></SellItem>
+            </SellerRoute>
           </PrivateRoute>
         ),
       },

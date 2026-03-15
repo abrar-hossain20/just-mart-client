@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 import {
   FaBox,
   FaEdit,
@@ -58,13 +59,13 @@ const MyProducts = () => {
         setMyProducts(
           myProducts.filter((p) => p._id !== productId && p.id !== productId),
         );
-        alert("Product deleted successfully!");
+        toast.success("Product deleted successfully!");
       } else {
-        alert("Failed to delete product");
+        toast.error("Failed to delete product");
       }
     } catch (error) {
       console.error("Error deleting product:", error);
-      alert("Error deleting product");
+      toast.error("Error deleting product");
     }
   };
 

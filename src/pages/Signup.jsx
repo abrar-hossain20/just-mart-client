@@ -142,7 +142,7 @@ const Signup = () => {
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm transition-colors duration-300 outline-none focus:border-indigo-500"
             />
             <p className="text-xs text-gray-600 mt-1.5 leading-snug">
-              Email must be in the format: your_roll.department@student.just.edu.bd
+              Email must be in the format: <span className="text-red-700">your_roll.department@student.just.edu.bd</span>
             </p>
           </div>
 

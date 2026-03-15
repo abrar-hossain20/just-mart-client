@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { API_ENDPOINTS } from "../config/api";
+import { toast } from "react-toastify";
 import {
   FaBox,
   FaShoppingBag,
@@ -43,13 +44,13 @@ const Dashboard = () => {
 
       if (response.ok) {
         setMyProducts(myProducts.filter((p) => p.id !== productId));
-        alert("Product deleted successfully!");
+        toast.success("Product deleted successfully!");
       } else {
-        alert("Failed to delete product");
+        toast.error("Failed to delete product");
       }
     } catch (error) {
       console.error("Error deleting product:", error);
-      alert("Error deleting product");
+      toast.error("Error deleting product");
     }
   };
 
@@ -79,12 +80,12 @@ const Dashboard = () => {
         ),
       );
 
-      alert("Order cancelled successfully!");
+      toast.success("Order cancelled successfully!");
       // Refresh data
       window.location.reload();
     } catch (error) {
       console.error("Error cancelling order:", error);
-      alert(error.message || "Failed to cancel order. Please try again.");
+      toast.error(error.message || "Failed to cancel order. Please try again.");
     }
   };
 
