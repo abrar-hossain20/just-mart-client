@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Link, useNavigate } from "react-router";
 import { API_ENDPOINTS } from "../config/api";
+import { AuthContext } from "../context/AuthContext";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaSearch,
   FaBook,
@@ -19,6 +21,7 @@ import heroImage from "../assets/hero.jpg";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,18 +31,26 @@ const Home = () => {
     // Fetch data from backend and local file
     const fetchData = async () => {
       try {
-        const [productsRes, categoriesRes, localDataRes, statsRes] =
-          await Promise.all([
-            fetch(API_ENDPOINTS.PRODUCTS),
-            fetch(API_ENDPOINTS.CATEGORIES),
-            fetch("/Data.json"),
-            fetch(API_ENDPOINTS.STATS),
-          ]);
+        const [productsRes, categoriesRes, localDataRes] = await Promise.all([
+          fetch(API_ENDPOINTS.PRODUCTS),
+          fetch(API_ENDPOINTS.CATEGORIES),
+          fetch("/Data.json"),
+        ]);
 
         const products = await productsRes.json();
         const categories = await categoriesRes.json();
         const localData = await localDataRes.json();
-        const stats = await statsRes.json();
+        let stats = {};
+
+        if (user) {
+          const statsHeaders = await buildAuthHeaders(user);
+          const statsRes = await fetch(API_ENDPOINTS.STATS, {
+            headers: statsHeaders,
+          });
+          if (statsRes.ok) {
+            stats = await statsRes.json();
+          }
+        }
 
         setData({
           products,
@@ -55,7 +66,7 @@ const Home = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (
@@ -386,7 +397,6 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { CartContext } from "./CartContext";
 import { AuthContext } from "./AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 
 const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
@@ -30,13 +31,19 @@ const CartProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(API_ENDPOINTS.CART(user.email));
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(API_ENDPOINTS.CART(user.email), {
+        headers: authHeaders,
+      });
       const data = await response.json();
 
       if (data.items && data.items.length > 0) {
         // Fetch full product details for each item
+        const productHeaders = await buildAuthHeaders(user);
         const productPromises = data.items.map(async (item) => {
-          const res = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(item.productId));
+          const res = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(item.productId), {
+            headers: productHeaders,
+          });
           const product = await res.json();
           return { ...product, quantity: item.quantity };
         });
@@ -92,9 +99,12 @@ const CartProvider = ({ children }) => {
     });
 
     try {
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(API_ENDPOINTS.CART(user.email), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ productId: product._id, quantity: 1 }),
       });
 
@@ -115,10 +125,12 @@ const CartProvider = ({ children }) => {
     setCart((prevCart) => prevCart.filter((item) => item._id !== productId));
 
     try {
+      const authHeaders = await buildAuthHeaders(user);
       const response = await fetch(
         API_ENDPOINTS.CART_ITEM(user.email, productId),
         {
           method: "DELETE",
+          headers: authHeaders,
         },
       );
 
@@ -163,11 +175,14 @@ const CartProvider = ({ children }) => {
     );
 
     try {
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(
         API_ENDPOINTS.CART_ITEM(user.email, productId),
         {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders,
           body: JSON.stringify({ quantity }),
         },
       );
@@ -188,8 +203,10 @@ const CartProvider = ({ children }) => {
     setCart([]);
 
     try {
+      const authHeaders = await buildAuthHeaders(user);
       const response = await fetch(API_ENDPOINTS.CART(user.email), {
         method: "DELETE",
+        headers: authHeaders,
       });
 
       if (!response.ok) {

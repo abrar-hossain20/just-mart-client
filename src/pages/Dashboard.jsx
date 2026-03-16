@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaBox,
   FaShoppingBag,
@@ -38,8 +39,10 @@ const Dashboard = () => {
     }
 
     try {
+      const authHeaders = await buildAuthHeaders(user);
       const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(productId), {
         method: "DELETE",
+        headers: authHeaders,
       });
 
       if (response.ok) {
@@ -60,11 +63,12 @@ const Dashboard = () => {
     }
 
     try {
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(API_ENDPOINTS.ORDER_CANCEL(orderId), {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders,
         body: JSON.stringify({ userEmail: user.email }),
       });
 
@@ -98,20 +102,27 @@ const Dashboard = () => {
     // Fetch data from backend API
     const fetchData = async () => {
       try {
+        const authHeaders = await buildAuthHeaders(user);
         const [productsRes, buyerOrdersRes, sellerOrdersRes] =
           await Promise.all([
             fetch(API_ENDPOINTS.PRODUCTS),
             user?.email
-              ? fetch(API_ENDPOINTS.ORDERS_BY_EMAIL(user.email))
-              : Promise.resolve({ json: () => [] }),
+              ? fetch(API_ENDPOINTS.ORDERS_BY_EMAIL(user.email), {
+                  headers: authHeaders,
+                })
+              : Promise.resolve(null),
             user?.email
-              ? fetch(API_ENDPOINTS.ORDERS_RECEIVED(user.email))
-              : Promise.resolve({ json: () => [] }),
+              ? fetch(API_ENDPOINTS.ORDERS_RECEIVED(user.email), {
+                  headers: authHeaders,
+                })
+              : Promise.resolve(null),
           ]);
 
         const products = await productsRes.json();
-        const buyerOrders = user?.email ? await buyerOrdersRes.json() : [];
-        const sellerOrders = user?.email ? await sellerOrdersRes.json() : [];
+        const buyerOrders = buyerOrdersRes ? await buyerOrdersRes.json() : [];
+        const sellerOrders = sellerOrdersRes
+          ? await sellerOrdersRes.json()
+          : [];
 
         // Filter products by current user's email
         const userProducts = products.filter(

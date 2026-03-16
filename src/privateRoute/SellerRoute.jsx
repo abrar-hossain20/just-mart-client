@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { buildAuthHeaders } from "../utils/authHeaders";
 
 const SellerRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -19,7 +20,10 @@ const SellerRoute = ({ children }) => {
 
       try {
         setCheckingSellerInfo(true);
-        const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+        const authHeaders = await buildAuthHeaders(user);
+        const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email), {
+          headers: authHeaders,
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch seller profile");
         }

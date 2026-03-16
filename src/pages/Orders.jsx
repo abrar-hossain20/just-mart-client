@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaBox,
   FaShippingFast,
@@ -59,7 +60,8 @@ const Orders = () => {
         viewMode === "seller"
           ? API_ENDPOINTS.ORDERS_RECEIVED(user.email)
           : API_ENDPOINTS.ORDERS_BY_EMAIL(user.email);
-      const response = await fetch(endpoint);
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(endpoint, { headers: authHeaders });
       const data = await response.json();
 
       setOrders(data);
@@ -79,11 +81,12 @@ const Orders = () => {
     }
 
     try {
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(API_ENDPOINTS.ORDER_CANCEL(orderId), {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders,
         body: JSON.stringify({ userEmail: user.email }),
       });
 
@@ -138,11 +141,12 @@ const Orders = () => {
         requestBody.cancellationReason = cancellationReason.trim();
       }
 
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(API_ENDPOINTS.ORDER_STATUS(orderId), {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders,
         body: JSON.stringify(requestBody),
       });
 
@@ -256,11 +260,12 @@ const Orders = () => {
     setSubmittingRating(true);
     try {
       console.log("Submitting rating for product:", ratingProduct);
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(API_ENDPOINTS.RATINGS, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders,
         body: JSON.stringify({
           productId:
             ratingProduct.productId || ratingProduct.id || ratingProduct._id,

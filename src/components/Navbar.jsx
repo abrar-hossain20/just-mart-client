@@ -5,6 +5,7 @@ import { CartContext } from "../context/CartContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaUserCircle,
   FaShoppingCart,
@@ -35,7 +36,10 @@ const Navbar = () => {
 
       try {
         setCheckingSellerInfo(true);
-        const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+        const authHeaders = await buildAuthHeaders(user);
+        const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email), {
+          headers: authHeaders,
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch seller profile");
         }

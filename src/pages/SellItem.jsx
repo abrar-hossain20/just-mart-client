@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { FaUpload, FaImage, FaTimes, FaPlus, FaSpinner } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 
 const SellItem = () => {
   const { user } = useContext(AuthContext);
@@ -44,7 +45,10 @@ const SellItem = () => {
   const fetchUserProfile = async () => {
     try {
       setCheckingProfile(true);
-      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email));
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email), {
+        headers: authHeaders,
+      });
       if (response.ok) {
         const data = await response.json();
         setUserProfile(data.profile);
@@ -59,7 +63,10 @@ const SellItem = () => {
   const fetchProductForEdit = async (productId) => {
     try {
       setLoadingProduct(true);
-      const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(productId));
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(productId), {
+        headers: authHeaders,
+      });
       if (!response.ok) {
         throw new Error("Product not found");
       }
@@ -195,7 +202,7 @@ const SellItem = () => {
     if (!formData.category) {
       newErrors.category = "Category is required";
     }
-    
+
     if (formData.images.length === 0) {
       newErrors.images = "At least one image is required";
     }
@@ -241,11 +248,12 @@ const SellItem = () => {
 
       if (isEditMode && editId) {
         // Update existing product
+        const authHeaders = await buildAuthHeaders(user, {
+          "Content-Type": "application/json",
+        });
         const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(editId), {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders,
           body: JSON.stringify(productData),
         });
 
@@ -261,11 +269,12 @@ const SellItem = () => {
         productData.rating = 0;
         productData.views = 0;
 
+        const authHeaders = await buildAuthHeaders(user, {
+          "Content-Type": "application/json",
+        });
         const response = await fetch(API_ENDPOINTS.PRODUCTS, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: authHeaders,
           body: JSON.stringify(productData),
         });
 
@@ -466,8 +475,6 @@ const SellItem = () => {
                 </select>
               </div>
             </div>
-
-           
 
             {/* Tags */}
             <div className="mb-6">

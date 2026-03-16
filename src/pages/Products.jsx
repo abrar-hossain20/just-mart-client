@@ -39,6 +39,8 @@ const Products = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [addedProductId, setAddedProductId] = useState(null);
 
+  // console.log("Token:", user?.accessToken);
+
   // Scroll to top on component mount
   useEffect(() => {
     window.scrollTo(0, 0);

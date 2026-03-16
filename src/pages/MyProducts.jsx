@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaBox,
   FaEdit,
@@ -51,8 +52,10 @@ const MyProducts = () => {
     }
 
     try {
+      const authHeaders = await buildAuthHeaders(user);
       const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(productId), {
         method: "DELETE",
+        headers: authHeaders,
       });
 
       if (response.ok) {

@@ -1,24 +1,21 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
 import { API_ENDPOINTS } from "../config/api";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaArrowLeft,
   FaHeart,
   FaMapMarkerAlt,
   FaClock,
-  FaEye,
   FaPhone,
   FaEnvelope,
   FaUser,
   FaStar,
   FaCheckCircle,
   FaShoppingCart,
-  FaFacebookF,
-  FaTwitter,
-  FaWhatsapp,
   FaLock,
   FaTimes,
 } from "react-icons/fa";
@@ -38,10 +35,16 @@ const ProductDetails = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [sellerProfile, setSellerProfile] = useState(null);
 
-  // Fetch product from backend API
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+
     try {
-      const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(id));
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(API_ENDPOINTS.PRODUCT_BY_ID(id), {
+        headers: authHeaders,
+      });
       if (!response.ok) {
         throw new Error("Product not found");
       }
@@ -70,10 +73,17 @@ const ProductDetails = () => {
       setRelatedProducts(related);
 
       // Fetch seller profile
-      if (foundProduct.sellerEmail) {
+      if (
+        foundProduct.sellerEmail &&
+        foundProduct.sellerEmail === user?.email
+      ) {
         try {
+          const profileHeaders = await buildAuthHeaders(user);
           const profileRes = await fetch(
-            API_ENDPOINTS.USER_PROFILE(foundProduct.sellerEmail),
+            API_ENDPOINTS.USER_PROFILE(user.email),
+            {
+              headers: profileHeaders,
+            },
           );
           if (profileRes.ok) {
             const profileData = await profileRes.json();
@@ -82,6 +92,8 @@ const ProductDetails = () => {
         } catch (error) {
           console.error("Error loading seller profile:", error);
         }
+      } else {
+        setSellerProfile(null);
       }
 
       setLoading(false);
@@ -89,9 +101,19 @@ const ProductDetails = () => {
       console.error("Error loading product:", error);
       setLoading(false);
     }
-  };
+  }, [id, user]);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     fetchProduct();
 
     // Refresh product data every 30 seconds to get updated ratings and stock
@@ -100,7 +122,7 @@ const ProductDetails = () => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchProduct, user, authLoading]);
 
   if (loading || authLoading) {
     return (
@@ -170,10 +192,6 @@ const ProductDetails = () => {
       </div>
     );
   }
-
-  const discountPercentage = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100,
-  );
 
   const handleAddToCart = () => {
     if (!user) {
@@ -517,9 +535,17 @@ const ProductDetails = () => {
                 >
                   <div className="relative">
                     <img
-                      src={relatedProduct.image}
+                      src={
+                        relatedProduct.images?.[0] ||
+                        relatedProduct.image ||
+                        "https://via.placeholder.com/300x200?text=No+Image"
+                      }
                       alt={relatedProduct.title}
                       className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://via.placeholder.com/300x200?text=No+Image";
+                      }}
                     />
                     <span className="absolute top-2 left-2 bg-linear-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
                       {Math.round(

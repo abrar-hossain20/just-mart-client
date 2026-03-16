@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaUserCircle,
   FaPhone,
@@ -40,14 +41,38 @@ const MyProfile = () => {
   }, [user, viewingUserEmail]);
 
   const fetchProfile = async () => {
+    if (!user?.email) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const emailToFetch = isViewingOtherUser ? viewingUserEmail : user.email;
-      const response = await fetch(API_ENDPOINTS.USER_PROFILE(emailToFetch));
-      if (response.ok) {
-        const data = await response.json();
-        if (isViewingOtherUser) {
+      if (isViewingOtherUser) {
+        setProfile({
+          buyingContactNumber: "",
+          sellingContactNumber: "",
+          address: {
+            locationType: "Inside Campus",
+            customAddress: "",
+          },
+        });
+        const response = await fetch(
+          API_ENDPOINTS.USER_BY_EMAIL(viewingUserEmail),
+        );
+        if (response.ok) {
+          const data = await response.json();
           setViewedUserInfo(data);
         }
+        return;
+      }
+
+      setViewedUserInfo(null);
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email), {
+        headers: authHeaders,
+      });
+      if (response.ok) {
+        const data = await response.json();
         if (data.profile) {
           setProfile({
             buyingContactNumber: data.profile.buyingContactNumber || "",
@@ -135,9 +160,9 @@ const MyProfile = () => {
     try {
       const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email), {
         method: "PUT",
-        headers: {
+        headers: await buildAuthHeaders(user, {
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({ profile }),
       });
 
@@ -171,7 +196,10 @@ const MyProfile = () => {
     profile.buyingContactNumber || profile.sellingContactNumber;
 
   const displayName = isViewingOtherUser
-    ? viewedUserInfo?.displayName || viewedUserInfo?.email || viewingUserEmail
+    ? viewedUserInfo?.displayName ||
+      viewedUserInfo?.name ||
+      viewedUserInfo?.email ||
+      viewingUserEmail
     : user?.displayName || user?.email;
   const displayEmail = isViewingOtherUser ? viewingUserEmail : user?.email;
 

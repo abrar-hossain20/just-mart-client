@@ -4,6 +4,7 @@ import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
+import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaTrash,
   FaMinus,
@@ -103,9 +104,9 @@ const Cart = () => {
 
       const response = await fetch(API_ENDPOINTS.ORDERS, {
         method: "POST",
-        headers: {
+        headers: await buildAuthHeaders(user, {
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify(orderData),
       });
 

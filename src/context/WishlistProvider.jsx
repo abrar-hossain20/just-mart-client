@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { WishlistContext } from "./WishlistContext";
 import { AuthContext } from "./AuthContext";
 import { API_ENDPOINTS } from "../config/api";
+import { buildAuthHeaders } from "../utils/authHeaders";
 
 const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
@@ -22,15 +23,19 @@ const WishlistProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      const response = await fetch(API_ENDPOINTS.WISHLIST(user.email));
+      const authHeaders = await buildAuthHeaders(user);
+      const response = await fetch(API_ENDPOINTS.WISHLIST(user.email), {
+        headers: authHeaders,
+      });
       const data = await response.json();
 
       if (data.items && data.items.length > 0) {
         // Fetch full product details for each item
+        const productHeaders = await buildAuthHeaders(user);
         const productPromises = data.items.map((item) =>
-          fetch(API_ENDPOINTS.PRODUCT_BY_ID(item.productId)).then((res) =>
-            res.json(),
-          ),
+          fetch(API_ENDPOINTS.PRODUCT_BY_ID(item.productId), {
+            headers: productHeaders,
+          }).then((res) => res.json()),
         );
         const products = await Promise.all(productPromises);
         setWishlistItems(products.filter((p) => p)); // Filter out null/undefined
@@ -59,9 +64,12 @@ const WishlistProvider = ({ children }) => {
     });
 
     try {
+      const authHeaders = await buildAuthHeaders(user, {
+        "Content-Type": "application/json",
+      });
       const response = await fetch(API_ENDPOINTS.WISHLIST(user.email), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ productId: product._id }),
       });
 
@@ -87,10 +95,12 @@ const WishlistProvider = ({ children }) => {
     );
 
     try {
+      const authHeaders = await buildAuthHeaders(user);
       const response = await fetch(
         API_ENDPOINTS.WISHLIST_ITEM(user.email, productId),
         {
           method: "DELETE",
+          headers: authHeaders,
         },
       );
 
@@ -115,11 +125,13 @@ const WishlistProvider = ({ children }) => {
     setWishlistItems([]);
 
     try {
+      const authHeaders = await buildAuthHeaders(user);
       // Remove all items one by one
       await Promise.all(
         previousItems.map((item) =>
           fetch(API_ENDPOINTS.WISHLIST_ITEM(user.email, item._id), {
             method: "DELETE",
+            headers: authHeaders,
           }),
         ),
       );
