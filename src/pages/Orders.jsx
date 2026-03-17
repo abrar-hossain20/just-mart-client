@@ -593,9 +593,10 @@ const Orders = () => {
                         <button
                           onClick={() => {
                             const buyerEmail = order.buyerEmail;
+                            const buyerName = order.buyerName;
                             if (buyerEmail) {
                               navigate(
-                                `/profile?user=${encodeURIComponent(buyerEmail)}`,
+                                `/profile?user=${encodeURIComponent(buyerEmail)}&name=${encodeURIComponent(buyerName || "")}`,
                               );
                             } else {
                               toast.error("Buyer information not available");
@@ -632,9 +633,10 @@ const Orders = () => {
                         <button
                           onClick={() => {
                             const sellerEmail = order.items?.[0]?.sellerEmail;
+                            const sellerName = order.items?.[0]?.sellerName;
                             if (sellerEmail) {
                               navigate(
-                                `/profile?user=${encodeURIComponent(sellerEmail)}`,
+                                `/profile?user=${encodeURIComponent(sellerEmail)}&name=${encodeURIComponent(sellerName || "")}`,
                               );
                             } else {
                               toast.error("Seller information not available");

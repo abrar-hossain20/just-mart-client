@@ -508,7 +508,7 @@ const ProductDetails = () => {
                 <button
                   onClick={() =>
                     navigate(
-                      `/profile?user=${encodeURIComponent(product.sellerEmail)}`,
+                      `/profile?user=${encodeURIComponent(product.sellerEmail)}&name=${encodeURIComponent(product.sellerName || product.seller?.name || "")}`,
                     )
                   }
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2"
@@ -676,7 +676,7 @@ const ProductDetails = () => {
                 onClick={() => {
                   setShowContactModal(false);
                   navigate(
-                    `/profile?user=${encodeURIComponent(product.sellerEmail)}`,
+                    `/profile?user=${encodeURIComponent(product.sellerEmail)}&name=${encodeURIComponent(product.sellerName || product.seller?.name || "")}`,
                   );
                 }}
                 className="w-full mt-6 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-teal-600 hover:text-teal-600 transition-colors flex items-center justify-center gap-2"

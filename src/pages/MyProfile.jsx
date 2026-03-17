@@ -17,6 +17,7 @@ const MyProfile = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const viewingUserEmail = searchParams.get("user");
+  const viewingUserName = searchParams.get("name");
   const isViewingOtherUser =
     viewingUserEmail && viewingUserEmail !== user?.email;
 
@@ -198,9 +199,10 @@ const MyProfile = () => {
   const displayName = isViewingOtherUser
     ? viewedUserInfo?.displayName ||
       viewedUserInfo?.name ||
+      viewingUserName ||
       viewedUserInfo?.email ||
       viewingUserEmail
-    : user?.displayName || user?.email;
+    : user?.displayName || user?.email?.split("@")[0] || user?.email;
   const displayEmail = isViewingOtherUser ? viewingUserEmail : user?.email;
 
   return (
@@ -212,7 +214,7 @@ const MyProfile = () => {
             <FaUserCircle className="text-5xl text-teal-600" />
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
-                {isViewingOtherUser ? `${displayName}'s Profile` : "My Profile"}
+                {isViewingOtherUser ? `${displayName}'s Profile` : displayName}
               </h1>
               <p className="text-gray-600">{displayEmail}</p>
             </div>
