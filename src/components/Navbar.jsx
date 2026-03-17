@@ -344,11 +344,18 @@ const Navbar = () => {
               </Link>
             )}
             <Link
+              to="/wishlist"
+              onClick={() => setShowMobileMenu(false)}
+              className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+            >
+              Wishlist ({getWishlistItemsCount()})
+            </Link>
+            <Link
               to="/cart"
               onClick={() => setShowMobileMenu(false)}
               className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
             >
-              Shopping Cart (3)
+              Shopping Cart ({getCartItemsCount()})
             </Link>
 
             {user ? (
