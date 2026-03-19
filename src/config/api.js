@@ -12,7 +12,17 @@ export const API_ENDPOINTS = {
   // Users
   USER_REGISTER: `${API_BASE_URL}/api/users/register`,
   USER_BY_EMAIL: (email) => `${API_BASE_URL}/api/users/${email}`,
+  USER_ROLE: (email) => `${API_BASE_URL}/api/users/${email}/role`,
   USER_PROFILE: (email) => `${API_BASE_URL}/api/users/${email}/profile`,
+
+  // Admin
+  ADMIN_STATS: `${API_BASE_URL}/api/admin/stats`,
+  ADMIN_USERS: `${API_BASE_URL}/api/admin/users`,
+  ADMIN_USER_ROLE: (id) => `${API_BASE_URL}/api/admin/users/${id}/role`,
+  ADMIN_PRODUCTS: `${API_BASE_URL}/api/admin/products`,
+  ADMIN_PRODUCT_BY_ID: (id) => `${API_BASE_URL}/api/admin/products/${id}`,
+  ADMIN_ORDERS: `${API_BASE_URL}/api/admin/orders`,
+  ADMIN_ORDER_STATUS: (id) => `${API_BASE_URL}/api/admin/orders/${id}/status`,
 
   // Cart
   CART: (email) => `${API_BASE_URL}/api/cart/${email}`,

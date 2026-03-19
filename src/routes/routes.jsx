@@ -14,6 +14,8 @@ import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
 import PrivateRoute from "../privateRoute/PrivateRoute";
 import SellerRoute from "../privateRoute/SellerRoute";
+import AdminRoute from "../privateRoute/AdminRoute";
+import AdminDashboard from "../pages/AdminDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -91,6 +93,16 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <MyProfile></MyProfile>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/admin",
+        element: (
+          <PrivateRoute>
+            <AdminRoute>
+              <AdminDashboard></AdminDashboard>
+            </AdminRoute>
           </PrivateRoute>
         ),
       },

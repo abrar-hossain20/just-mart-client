@@ -63,6 +63,20 @@ const MyProfile = () => {
         if (response.ok) {
           const data = await response.json();
           setViewedUserInfo(data);
+
+          const viewedProfile = data?.profile || {};
+          const viewedAddress = viewedProfile?.address || {};
+
+          setProfile({
+            buyingContactNumber: "",
+            sellingContactNumber: viewedProfile?.sellingContactNumber || "",
+            address: {
+              locationType: viewedAddress?.locationType || "Inside Campus",
+              customAddress: viewedAddress?.customAddress || "",
+            },
+          });
+        } else {
+          setViewedUserInfo(null);
         }
         return;
       }
