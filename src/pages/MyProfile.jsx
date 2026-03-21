@@ -10,6 +10,7 @@ import {
   FaMapMarkerAlt,
   FaSave,
   FaEdit,
+  FaStar,
 } from "react-icons/fa";
 
 const MyProfile = () => {
@@ -25,6 +26,10 @@ const MyProfile = () => {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [viewedUserInfo, setViewedUserInfo] = useState(null);
+  const [sellerStats, setSellerStats] = useState({
+    sellerRating: 0,
+    totalSellerRatings: 0,
+  });
   const [profile, setProfile] = useState({
     buyingContactNumber: "",
     sellingContactNumber: "",
@@ -49,6 +54,10 @@ const MyProfile = () => {
 
     try {
       if (isViewingOtherUser) {
+        setSellerStats({
+          sellerRating: 0,
+          totalSellerRatings: 0,
+        });
         setProfile({
           buyingContactNumber: "",
           sellingContactNumber: "",
@@ -63,6 +72,10 @@ const MyProfile = () => {
         if (response.ok) {
           const data = await response.json();
           setViewedUserInfo(data);
+          setSellerStats({
+            sellerRating: Number(data?.sellerRating) || 0,
+            totalSellerRatings: Number(data?.totalSellerRatings) || 0,
+          });
 
           const viewedProfile = data?.profile || {};
           const viewedAddress = viewedProfile?.address || {};
@@ -88,6 +101,10 @@ const MyProfile = () => {
       });
       if (response.ok) {
         const data = await response.json();
+        setSellerStats({
+          sellerRating: Number(data?.sellerRating) || 0,
+          totalSellerRatings: Number(data?.totalSellerRatings) || 0,
+        });
         if (data.profile) {
           setProfile({
             buyingContactNumber: data.profile.buyingContactNumber || "",
@@ -99,10 +116,18 @@ const MyProfile = () => {
           });
         }
       } else {
+        setSellerStats({
+          sellerRating: 0,
+          totalSellerRatings: 0,
+        });
         console.error("Failed to fetch profile:", response.statusText);
         // Don't show error to user, just use default profile
       }
     } catch (error) {
+      setSellerStats({
+        sellerRating: 0,
+        totalSellerRatings: 0,
+      });
       console.error("Error fetching profile:", error);
       // Don't show error to user, just use default profile
     } finally {
@@ -218,6 +243,9 @@ const MyProfile = () => {
       viewingUserEmail
     : user?.displayName || user?.email?.split("@")[0] || user?.email;
   const displayEmail = isViewingOtherUser ? viewingUserEmail : user?.email;
+  const formattedSellerRating = sellerStats.sellerRating
+    ? Number(sellerStats.sellerRating).toFixed(1)
+    : "0.0";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -280,6 +308,23 @@ const MyProfile = () => {
 
         {/* Profile Form */}
         <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="mb-8 border border-yellow-200 bg-yellow-50 rounded-lg p-4">
+            <h2 className="text-xl font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <FaStar className="text-yellow-500" />
+              Seller Rating
+            </h2>
+            {sellerStats.totalSellerRatings > 0 ? (
+              <p className="text-gray-700">
+                <span className="font-bold text-yellow-600 text-lg">
+                  {formattedSellerRating}
+                </span>{" "}
+                / 5 ({sellerStats.totalSellerRatings} ratings)
+              </p>
+            ) : (
+              <p className="text-gray-600">No seller ratings yet</p>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit}>
             {/* Contact Numbers Section */}
             <div className="mb-8">

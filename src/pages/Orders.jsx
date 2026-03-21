@@ -41,6 +41,8 @@ const Orders = () => {
   const [ratingProduct, setRatingProduct] = useState(null);
   const [ratingValue, setRatingValue] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [sellerRatingValue, setSellerRatingValue] = useState(0);
+  const [hoverSellerRating, setHoverSellerRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [submittingRating, setSubmittingRating] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
@@ -341,6 +343,15 @@ const Orders = () => {
     return "Order";
   };
 
+  const getRatingLabel = (value) => {
+    if (value === 1) return "Poor";
+    if (value === 2) return "Fair";
+    if (value === 3) return "Good";
+    if (value === 4) return "Very Good";
+    if (value === 5) return "Excellent";
+    return "";
+  };
+
   const openOrderDetails = (order) => {
     setSelectedOrder(order);
     setShowDetailsModal(true);
@@ -352,8 +363,15 @@ const Orders = () => {
   };
 
   const openRatingModal = (order, item) => {
-    setRatingProduct({ ...item, orderId: order._id });
+    setRatingProduct({
+      ...item,
+      orderId: order._id,
+      sellerEmail: item.sellerEmail || order.items?.[0]?.sellerEmail || "",
+      sellerName: item.sellerName || order.items?.[0]?.sellerName || "",
+    });
     setRatingValue(0);
+    setSellerRatingValue(0);
+    setHoverSellerRating(0);
     setReviewText("");
     setShowRatingModal(true);
   };
@@ -363,12 +381,19 @@ const Orders = () => {
     setRatingProduct(null);
     setRatingValue(0);
     setHoverRating(0);
+    setSellerRatingValue(0);
+    setHoverSellerRating(0);
     setReviewText("");
   };
 
   const handleRatingSubmit = async () => {
     if (ratingValue === 0) {
-      toast.error("Please select a rating");
+      toast.error("Please select a product rating");
+      return;
+    }
+
+    if (sellerRatingValue === 0) {
+      toast.error("Please select a seller rating");
       return;
     }
 
@@ -388,6 +413,8 @@ const Orders = () => {
           orderId: ratingProduct.orderId,
           rating: ratingValue,
           review: reviewText,
+          sellerEmail: ratingProduct.sellerEmail,
+          sellerRating: sellerRatingValue,
         }),
       });
 
@@ -398,7 +425,7 @@ const Orders = () => {
 
       const result = await response.json();
       console.log("Rating submitted successfully:", result);
-      toast.success("Rating submitted successfully!");
+      toast.success("Product and seller ratings submitted successfully!");
       closeRatingModal();
       fetchOrders(); // Refresh orders to update rating status
     } catch (error) {
@@ -1016,7 +1043,7 @@ const Orders = () => {
           <div className="bg-white rounded-lg max-w-md w-full">
             {/* Modal Header */}
             <div className="bg-linear-to-r from-yellow-500 to-orange-500 text-white px-6 py-4 rounded-t-lg">
-              <h2 className="text-xl font-bold">Rate Product</h2>
+              <h2 className="text-xl font-bold">Rate Product & Seller</h2>
             </div>
 
             {/* Modal Body */}
@@ -1068,11 +1095,44 @@ const Orders = () => {
                 </div>
                 {ratingValue > 0 && (
                   <p className="text-center text-sm text-gray-600 mt-2">
-                    {ratingValue === 1 && "Poor"}
-                    {ratingValue === 2 && "Fair"}
-                    {ratingValue === 3 && "Good"}
-                    {ratingValue === 4 && "Very Good"}
-                    {ratingValue === 5 && "Excellent"}
+                    {getRatingLabel(ratingValue)}
+                  </p>
+                )}
+              </div>
+
+              {/* Seller Rating */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Seller Rating
+                </label>
+                {ratingProduct.sellerName && (
+                  <p className="text-sm text-gray-500 mb-3">
+                    Seller: {ratingProduct.sellerName}
+                  </p>
+                )}
+                <div className="flex gap-2 justify-center">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={`seller-${star}`}
+                      type="button"
+                      onClick={() => setSellerRatingValue(star)}
+                      onMouseEnter={() => setHoverSellerRating(star)}
+                      onMouseLeave={() => setHoverSellerRating(0)}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <FaStar
+                        className={`text-4xl ${
+                          star <= (hoverSellerRating || sellerRatingValue)
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                {sellerRatingValue > 0 && (
+                  <p className="text-center text-sm text-gray-600 mt-2">
+                    {getRatingLabel(sellerRatingValue)}
                   </p>
                 )}
               </div>
@@ -1106,7 +1166,11 @@ const Orders = () => {
                 </button>
                 <button
                   onClick={handleRatingSubmit}
-                  disabled={submittingRating || ratingValue === 0}
+                  disabled={
+                    submittingRating ||
+                    ratingValue === 0 ||
+                    sellerRatingValue === 0
+                  }
                   className="flex-1 px-4 py-3 bg-yellow-500 text-white rounded-lg font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {submittingRating ? (
