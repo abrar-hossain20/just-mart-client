@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Link, useSearchParams, useNavigate, useLocation } from "react-router";
+import { useSearchParams, useNavigate, useLocation } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { WishlistContext } from "../context/WishlistContext";
@@ -40,11 +40,6 @@ const Products = () => {
   const [addedProductId, setAddedProductId] = useState(null);
 
   // console.log("Token:", user?.accessToken);
-
-  // Scroll to top on component mount
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   // Fetch products and categories from backend API
   const fetchData = async () => {
@@ -207,6 +202,10 @@ const Products = () => {
     } else {
       addToWishlist(product);
     }
+  };
+
+  const handleProductCardClick = (productId) => {
+    navigate(`/product/${productId}`);
   };
 
   if (loading) {
@@ -464,7 +463,8 @@ const Products = () => {
                 {filteredProducts.map((product) => (
                   <div
                     key={product._id}
-                    className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                    onClick={() => handleProductCardClick(product._id)}
+                    className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                   >
                     <div className="relative">
                       <img
@@ -522,9 +522,7 @@ const Products = () => {
                         {product.category}
                       </p>
                       <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2 hover:text-teal-600 transition-colors">
-                        <Link to={`/product/${product._id}`}>
-                          {product.title}
-                        </Link>
+                        {product.title}
                       </h3>
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -596,7 +594,8 @@ const Products = () => {
                 {filteredProducts.map((product) => (
                   <div
                     key={product._id}
-                    className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                    onClick={() => handleProductCardClick(product._id)}
+                    className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
                   >
                     <div className="flex flex-col sm:flex-row">
                       <div className="relative sm:w-64 h-48 sm:h-auto">
@@ -646,9 +645,7 @@ const Products = () => {
                               {product.category}
                             </p>
                             <h3 className="text-xl font-bold text-gray-800 mb-2 hover:text-teal-600 transition-colors">
-                              <Link to={`/product/${product._id}`}>
-                                {product.title}
-                              </Link>
+                              {product.title}
                             </h3>
                             <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                               {product.description}

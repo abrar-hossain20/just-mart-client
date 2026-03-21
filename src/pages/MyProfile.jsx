@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { Link, useSearchParams, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { API_ENDPOINTS } from "../config/api";
 import { toast } from "react-toastify";
@@ -26,6 +26,8 @@ const MyProfile = () => {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [viewedUserInfo, setViewedUserInfo] = useState(null);
+  const [sellerProducts, setSellerProducts] = useState([]);
+  const [loadingSellerProducts, setLoadingSellerProducts] = useState(false);
   const [sellerStats, setSellerStats] = useState({
     sellerRating: 0,
     totalSellerRatings: 0,
@@ -54,10 +56,12 @@ const MyProfile = () => {
 
     try {
       if (isViewingOtherUser) {
+        setLoadingSellerProducts(true);
         setSellerStats({
           sellerRating: 0,
           totalSellerRatings: 0,
         });
+        setSellerProducts([]);
         setProfile({
           buyingContactNumber: "",
           sellingContactNumber: "",
@@ -88,13 +92,36 @@ const MyProfile = () => {
               customAddress: viewedAddress?.customAddress || "",
             },
           });
+
+          try {
+            const sellerProductsResponse = await fetch(
+              API_ENDPOINTS.PRODUCTS_BY_SELLER(viewingUserEmail),
+            );
+
+            if (sellerProductsResponse.ok) {
+              const productsData = await sellerProductsResponse.json();
+              setSellerProducts(
+                Array.isArray(productsData) ? productsData : [],
+              );
+            } else {
+              setSellerProducts([]);
+            }
+          } catch (productsError) {
+            console.error("Error fetching seller products:", productsError);
+            setSellerProducts([]);
+          } finally {
+            setLoadingSellerProducts(false);
+          }
         } else {
           setViewedUserInfo(null);
+          setLoadingSellerProducts(false);
         }
         return;
       }
 
       setViewedUserInfo(null);
+      setSellerProducts([]);
+      setLoadingSellerProducts(false);
       const authHeaders = await buildAuthHeaders(user);
       const response = await fetch(API_ENDPOINTS.USER_PROFILE(user.email), {
         headers: authHeaders,
@@ -612,6 +639,74 @@ const MyProfile = () => {
             )}
           </form>
         </div>
+
+        {isViewingOtherUser && (
+          <div className="mt-6 bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Seller Products
+            </h2>
+
+            {loadingSellerProducts ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-600"></div>
+              </div>
+            ) : sellerProducts.length === 0 ? (
+              <p className="text-gray-600">
+                No products listed by this seller.
+              </p>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sellerProducts.map((product) => {
+                  const imageUrl =
+                    product.images?.[0] ||
+                    product.image ||
+                    product.imageUrl ||
+                    "https://via.placeholder.com/400x400?text=No+Image";
+                  const productRating = Number(product.rating) || 0;
+                  const totalProductRatings = Number(product.totalRatings) || 0;
+
+                  return (
+                    <Link
+                      key={product._id}
+                      to={`/product/${product._id}`}
+                      className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={product.title}
+                        className="w-full h-40 object-cover"
+                        onError={(event) => {
+                          event.currentTarget.src =
+                            "https://via.placeholder.com/400x400?text=No+Image";
+                        }}
+                      />
+                      <div className="p-3">
+                        <h3 className="font-semibold text-gray-800 line-clamp-2 mb-1">
+                          {product.title}
+                        </h3>
+                        {totalProductRatings > 0 ? (
+                          <div className="flex items-center gap-1 text-sm text-gray-700 mb-1">
+                            <FaStar className="text-yellow-500" />
+                            <span>
+                              {productRating.toFixed(1)} ({totalProductRatings})
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 mb-1">
+                            No ratings yet
+                          </p>
+                        )}
+                        <p className="text-teal-600 font-bold">
+                          ৳{Number(product.price || 0).toLocaleString()}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Information Box */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
