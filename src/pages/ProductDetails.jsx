@@ -35,6 +35,10 @@ const ProductDetails = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [sellerProfile, setSellerProfile] = useState(null);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   const fetchProduct = useCallback(async () => {
     if (!user) {
       return;
