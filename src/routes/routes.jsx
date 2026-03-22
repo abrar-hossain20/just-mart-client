@@ -4,6 +4,8 @@ import Home from "../pages/Home";
 import Products from "../pages/Products";
 import ProductDetails from "../pages/ProductDetails";
 import Cart from "../pages/Cart";
+import Checkout from "../pages/Checkout";
+import PaymentCallback from "../pages/PaymentCallback";
 import Dashboard from "../pages/Dashboard";
 import Wishlist from "../pages/Wishlist";
 import Orders from "../pages/Orders";
@@ -43,6 +45,22 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Cart></Cart>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/checkout",
+        element: (
+          <PrivateRoute>
+            <Checkout></Checkout>
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/payment-callback",
+        element: (
+          <PrivateRoute>
+            <PaymentCallback></PaymentCallback>
           </PrivateRoute>
         ),
       },

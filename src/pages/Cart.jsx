@@ -1,17 +1,13 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
-import { API_ENDPOINTS } from "../config/api";
-import { toast } from "react-toastify";
-import { buildAuthHeaders } from "../utils/authHeaders";
 import {
   FaTrash,
   FaMinus,
   FaPlus,
   FaShoppingBag,
   FaArrowLeft,
-  FaCheckCircle,
 } from "react-icons/fa";
 
 const Cart = () => {
@@ -19,110 +15,13 @@ const Cart = () => {
     useContext(CartContext);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [deliveryLocation, setDeliveryLocation] = useState("campus");
-  const [cityDeliveryArea, setCityDeliveryArea] = useState("");
-  const [deliveryContactNumber, setDeliveryContactNumber] = useState("");
 
-  const handlePlaceOrder = async () => {
+  const handleProceedToCheckout = () => {
     if (!user) {
       navigate("/signin", { state: { from: "/cart" } });
       return;
     }
-
-    if (deliveryLocation === "city" && !cityDeliveryArea) {
-      toast.error("Please select a city delivery area");
-      return;
-    }
-
-    if (!deliveryContactNumber.trim()) {
-      toast.error("Please enter your contact number");
-      return;
-    }
-
-    const sanitizedContactNumber = deliveryContactNumber.replace(
-      /[\s()-]/g,
-      "",
-    );
-    const phoneRegex = /^[0-9]{10,15}$/;
-    if (!phoneRegex.test(sanitizedContactNumber)) {
-      toast.error("Please enter a valid contact number (10-15 digits)");
-      return;
-    }
-
-    // Check if any items are out of stock
-    const outOfStockItems = cart.filter(
-      (item) => item.stock !== undefined && item.stock <= 0,
-    );
-    if (outOfStockItems.length > 0) {
-      toast.error(
-        `Cannot place order. The following items are out of stock: ${outOfStockItems.map((item) => item.title).join(", ")}. Please remove them from your cart.`,
-      );
-      return;
-    }
-
-    // Check if any items exceed available stock
-    const exceededStockItems = cart.filter(
-      (item) => item.stock !== undefined && item.quantity > item.stock,
-    );
-    if (exceededStockItems.length > 0) {
-      toast.error(
-        `Cannot place order. You have more items in cart than available stock for: ${exceededStockItems.map((item) => item.title).join(", ")}`,
-      );
-      return;
-    }
-
-    setIsPlacingOrder(true);
-
-    try {
-      const deliveryFee = deliveryLocation === "city" ? 20 : 0;
-
-      const orderData = {
-        buyerEmail: user.email,
-        buyerName: user.displayName || user.email,
-        buyerContactNumber: sanitizedContactNumber,
-        items: cart.map((item) => ({
-          productId: item._id,
-          title: item.title,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.images?.[0] || item.image,
-          category: item.category,
-          condition: item.condition,
-          sellerEmail: item.sellerEmail,
-          sellerName: item.sellerName,
-        })),
-        totalAmount: getCartTotal() + deliveryFee,
-        deliveryFee: deliveryFee,
-        deliveryLocation: deliveryLocation,
-        deliveryCityArea: deliveryLocation === "city" ? cityDeliveryArea : "",
-        deliveryContactNumber: sanitizedContactNumber,
-        status: "Pending",
-        paymentStatus: "Cash on Delivery",
-      };
-
-      const response = await fetch(API_ENDPOINTS.ORDERS, {
-        method: "POST",
-        headers: await buildAuthHeaders(user, {
-          "Content-Type": "application/json",
-        }),
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to place order");
-      }
-
-      await response.json();
-      clearCart();
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error("Error placing order:", error);
-      toast.error("Failed to place order. Please try again.");
-    } finally {
-      setIsPlacingOrder(false);
-    }
+    navigate("/checkout");
   };
 
   if (cart.length === 0) {
@@ -298,130 +197,26 @@ const Cart = () => {
                   <span>Subtotal</span>
                   <span>৳{getCartTotal().toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Delivery Fee</span>
-                  <span
-                    className={
-                      deliveryLocation === "city"
-                        ? "text-gray-900 font-semibold"
-                        : "text-green-600 font-semibold"
-                    }
-                  >
-                    {deliveryLocation === "city" ? "৳20" : "Free"}
-                  </span>
-                </div>
                 <div className="border-t pt-3">
                   <div className="flex justify-between text-lg font-bold text-gray-900">
-                    <span>Total</span>
+                    <span>Subtotal</span>
                     <span className="text-teal-600">
-                      ৳
-                      {(
-                        getCartTotal() + (deliveryLocation === "city" ? 20 : 0)
-                      ).toLocaleString()}
+                      ৳{getCartTotal().toLocaleString()}
                     </span>
                   </div>
-                </div>
-              </div>
-
-              {/* Delivery Address Section */}
-              <div className="mb-6 pb-6 border-b">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Delivery Information
-                </h3>
-
-                {/* Delivery Location Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Delivery Location
-                  </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                      <input
-                        type="radio"
-                        name="deliveryLocation"
-                        value="campus"
-                        checked={deliveryLocation === "campus"}
-                        onChange={(e) => {
-                          setDeliveryLocation(e.target.value);
-                          setCityDeliveryArea("");
-                        }}
-                        className="w-4 h-4 text-teal-600 focus:ring-teal-500"
-                      />
-                      <div className="ml-3 flex-1">
-                        <span className="font-medium text-gray-900">
-                          Campus Delivery
-                        </span>
-                        <span className="ml-2 text-sm text-green-600 font-semibold">
-                          FREE
-                        </span>
-                      </div>
-                    </label>
-                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                      <input
-                        type="radio"
-                        name="deliveryLocation"
-                        value="city"
-                        checked={deliveryLocation === "city"}
-                        onChange={(e) => setDeliveryLocation(e.target.value)}
-                        className="w-4 h-4 text-teal-600 focus:ring-teal-500"
-                      />
-                      <div className="ml-3 flex-1">
-                        <span className="font-medium text-gray-900">
-                          City Delivery
-                        </span>
-                        <span className="ml-2 text-sm text-gray-600">
-                          + ৳20
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-
-                  {deliveryLocation === "city" && (
-                    <div className="mt-3">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Select City Area <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={cityDeliveryArea}
-                        onChange={(e) => setCityDeliveryArea(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      >
-                        <option value="">Choose area</option>
-                        <option value="Palbari">Palbari</option>
-                        <option value="Doratana">Doratana</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                {/* Contact Number Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={deliveryContactNumber}
-                    onChange={(e) => setDeliveryContactNumber(e.target.value)}
-                    placeholder="Enter your contact number"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Required: 10-15 digits
+                  <p className="text-xs text-gray-500 mt-2">
+                    Delivery fee will be calculated in checkout
                   </p>
                 </div>
               </div>
 
+              {/* Delivery Address Section - Removed, now in checkout */}
+
               <button
-                onClick={handlePlaceOrder}
-                disabled={
-                  isPlacingOrder ||
-                  !deliveryContactNumber.trim() ||
-                  (deliveryLocation === "city" && !cityDeliveryArea)
-                }
-                className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleProceedToCheckout}
+                className="w-full py-4 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 mb-3"
               >
-                {isPlacingOrder ? "Placing Order..." : "Place Order"}
+                Proceed to Checkout
               </button>
 
               <Link
@@ -453,45 +248,6 @@ const Cart = () => {
           </div>
         </div>
       </div>
-
-      {/* Success Modal */}
-      {showSuccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <FaCheckCircle className="text-green-500 text-4xl" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Order Placed Successfully!
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Your order has been placed. The seller will contact you soon.
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    navigate("/orders");
-                  }}
-                  className="w-full py-3 bg-linear-to-r from-teal-600 to-blue-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
-                >
-                  View My Orders
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSuccessModal(false);
-                    navigate("/products");
-                  }}
-                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all"
-                >
-                  Continue Shopping
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

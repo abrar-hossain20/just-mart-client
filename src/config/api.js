@@ -41,6 +41,8 @@ export const API_ENDPOINTS = {
   ORDERS_RECEIVED: (email) => `${API_BASE_URL}/api/orders/received/${email}`,
   ORDER_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/status`,
   ORDER_CANCEL: (id) => `${API_BASE_URL}/api/orders/${id}/cancel`,
+  ORDER_PAYMENT_INITIATE: `${API_BASE_URL}/api/orders/payment/initiate`,
+  ORDER_PAYMENT_VERIFY: `${API_BASE_URL}/api/orders/payment/verify`,
 
   // Ratings
   RATINGS: `${API_BASE_URL}/api/ratings`,
