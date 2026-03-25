@@ -172,7 +172,7 @@ const Products = () => {
     setSortBy("newest");
   };
 
-  const handleAddToCart = (e, product) => {
+  const handleAddToCart = async (e, product) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -181,11 +181,15 @@ const Products = () => {
       return;
     }
 
-    addToCart(product);
-    setAddedProductId(product._id);
-    setTimeout(() => {
-      setAddedProductId(null);
-    }, 2000);
+    // addToCart returns true if successful, false if failed
+    const success = await addToCart(product);
+
+    if (success) {
+      setAddedProductId(product._id);
+      setTimeout(() => {
+        setAddedProductId(null);
+      }, 2000);
+    }
   };
 
   const handleWishlistToggle = (e, product) => {

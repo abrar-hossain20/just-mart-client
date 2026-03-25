@@ -63,7 +63,7 @@ const CartProvider = ({ children }) => {
   const addToCart = async (product) => {
     if (!user?.email) {
       console.error("User must be logged in to add to cart");
-      return;
+      return false;
     }
 
     // Check stock before adding
@@ -74,14 +74,14 @@ const CartProvider = ({ children }) => {
     // Prevent adding if product is out of stock
     if (productStock <= 0) {
       toast.error(`Sorry, "${product.title}" is out of stock.`);
-      return;
+      return false;
     }
 
     if (currentQuantity >= productStock) {
       toast.error(
         `Cannot add more. Only ${productStock} items available in stock.`,
       );
-      return;
+      return false;
     }
 
     // Optimistically update UI
@@ -109,12 +109,17 @@ const CartProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add to cart");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add to cart");
       }
+
+      return true; // Success
     } catch (error) {
       console.error("Error adding to cart:", error);
+      toast.error(error.message || "Failed to add to cart");
       // Revert optimistic update
       await fetchCart();
+      return false; // Failure
     }
   };
 

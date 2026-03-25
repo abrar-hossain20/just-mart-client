@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext";
@@ -14,13 +14,14 @@ const PaymentCallback = () => {
   const { clearCart } = useContext(CartContext);
   const [status, setStatus] = useState("processing"); // processing, success, failure
   const [message, setMessage] = useState("");
+  const hasCalledVerify = useRef(false);
 
   useEffect(() => {
     const handlePaymentCallback = async () => {
       try {
         // Get payment response parameters from URL
         const transactionId = searchParams.get("tran_id");
-        const status = searchParams.get("status");
+        const paymentStatus = searchParams.get("status");
         const amount = searchParams.get("amount");
         const currency = searchParams.get("currency");
 
@@ -30,7 +31,19 @@ const PaymentCallback = () => {
           return;
         }
 
-        // Verify payment with backend
+        // Handle failed/cancelled payments immediately without verification
+        if (paymentStatus === "failed" || paymentStatus === "cancelled") {
+          setStatus("failure");
+          const failureMessage =
+            paymentStatus === "cancelled"
+              ? "Payment was cancelled"
+              : "Payment failed. Please try again.";
+          setMessage(failureMessage);
+          toast.error(failureMessage);
+          return;
+        }
+
+        // Verify payment with backend only for successful payments
         const verifyResponse = await fetch(API_ENDPOINTS.ORDER_PAYMENT_VERIFY, {
           method: "POST",
           headers: await buildAuthHeaders(user, {
@@ -38,7 +51,7 @@ const PaymentCallback = () => {
           }),
           body: JSON.stringify({
             transactionId,
-            status,
+            status: paymentStatus,
             amount,
             currency,
           }),
@@ -70,10 +83,11 @@ const PaymentCallback = () => {
       }
     };
 
-    if (user) {
+    if (user && !hasCalledVerify.current) {
+      hasCalledVerify.current = true;
       handlePaymentCallback();
     }
-  }, [searchParams, user, clearCart]);
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">

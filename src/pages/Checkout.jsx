@@ -26,7 +26,7 @@ const Checkout = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   // Redirect if no cart items
-  if (cart.length === 0) {
+  if (cart.length === 0 && !showSuccessModal) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -155,6 +155,7 @@ const Checkout = () => {
         "Your order has been placed successfully! The seller will contact you soon.",
       );
       setShowSuccessModal(true);
+      toast.success("Order placed successfully! 🎉");
     } catch (error) {
       console.error("Error placing order:", error);
       toast.error("Failed to place order. Please try again.");
@@ -169,8 +170,8 @@ const Checkout = () => {
     setIsProcessing(true);
     try {
       const orderData = createOrderData();
-      
-    //   console.log(orderData);
+
+      //   console.log(orderData);
 
       // First, create the order with pending payment status
       const createOrderResponse = await fetch(API_ENDPOINTS.ORDERS, {
@@ -196,7 +197,7 @@ const Checkout = () => {
             "Content-Type": "application/json",
           }),
           body: JSON.stringify({
-            orderId: createdOrder._id || createdOrder.insertedId,
+            orderId: createdOrder.orderId,
             amount: total,
             currency: "BDT",
             customerName: user.displayName || user.email,

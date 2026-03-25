@@ -197,16 +197,18 @@ const ProductDetails = () => {
     );
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       navigate("/signin", { state: `/product/${id}` });
       return;
     }
-    addToCart(product);
-    setShowAddedMessage(true);
-    setTimeout(() => {
-      setShowAddedMessage(false);
-    }, 3000);
+    const success = await addToCart(product);
+    if (success) {
+      setShowAddedMessage(true);
+      setTimeout(() => {
+        setShowAddedMessage(false);
+      }, 3000);
+    }
   };
 
   const handleWishlistToggle = () => {
