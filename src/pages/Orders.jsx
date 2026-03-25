@@ -948,6 +948,19 @@ const Orders = () => {
                         </div>
                       </div>
                     )}
+                    {selectedOrder.transactionId && (
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <FaBoxOpen className="text-blue-500 text-xl" />
+                        <div>
+                          <p className="text-xs text-gray-500">
+                            Transaction ID
+                          </p>
+                          <p className="font-semibold break-all">
+                            {selectedOrder.transactionId}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
