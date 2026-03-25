@@ -275,6 +275,9 @@ const AdminDashboard = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-5 py-3 font-semibold text-gray-600">
+                    S/N
+                  </th>
+                  <th className="text-left px-5 py-3 font-semibold text-gray-600">
                     Name
                   </th>
                   <th className="text-left px-5 py-3 font-semibold text-gray-600">
@@ -292,8 +295,9 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((item) => (
+                {users.map((item, index) => (
                   <tr key={item._id} className="border-t border-gray-100">
+                    <td className="px-5 py-3 text-gray-600">{index + 1}</td>
                     <td className="px-5 py-3 text-gray-800">
                       {item.name || "N/A"}
                     </td>
@@ -330,7 +334,7 @@ const AdminDashboard = () => {
                 {users.length === 0 && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="px-5 py-6 text-center text-gray-500"
                     >
                       No users found
@@ -356,6 +360,9 @@ const AdminDashboard = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-5 py-3 font-semibold text-gray-600">
+                    S/N
+                  </th>
+                  <th className="text-left px-5 py-3 font-semibold text-gray-600">
                     Order ID
                   </th>
                   <th className="text-left px-5 py-3 font-semibold text-gray-600">
@@ -376,8 +383,9 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {visibleOrders.map((item) => (
+                {visibleOrders.map((item, index) => (
                   <tr key={item._id} className="border-t border-gray-100">
+                    <td className="px-5 py-3 text-gray-600">{index + 1}</td>
                     <td className="px-5 py-3 font-semibold text-gray-800">
                       #{item._id?.slice(-8)?.toUpperCase()}
                     </td>
@@ -416,7 +424,7 @@ const AdminDashboard = () => {
                 {orders.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-5 py-6 text-center text-gray-500"
                     >
                       No orders found
@@ -442,6 +450,9 @@ const AdminDashboard = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-5 py-3 font-semibold text-gray-600">
+                    S/N
+                  </th>
+                  <th className="text-left px-5 py-3 font-semibold text-gray-600">
                     Title
                   </th>
                   <th className="text-left px-5 py-3 font-semibold text-gray-600">
@@ -459,8 +470,9 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {visibleProducts.map((item) => (
+                {visibleProducts.map((item, index) => (
                   <tr key={item._id} className="border-t border-gray-100">
+                    <td className="px-5 py-3 text-gray-600">{index + 1}</td>
                     <td className="px-5 py-3 text-gray-800">{item.title}</td>
                     <td className="px-5 py-3 text-gray-600">
                       {item.sellerName || item.sellerEmail || "N/A"}
@@ -487,7 +499,7 @@ const AdminDashboard = () => {
                 {products.length === 0 && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="px-5 py-6 text-center text-gray-500"
                     >
                       No products found
